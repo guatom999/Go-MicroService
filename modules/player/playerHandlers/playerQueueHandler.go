@@ -10,11 +10,11 @@ type (
 	}
 
 	playerQueueHandler struct {
-		cfg           config.Config
+		cfg           *config.Config
 		playerUseCase playerUseCases.IPlayerUseCaseService
 	}
 )
 
-func NewPlayerQueueHandler(cfg config.Config, playerUseCase playerUseCases.IPlayerUseCaseService) IPlayerQueueHandlerService {
+func NewPlayerQueueHandler(cfg *config.Config, playerUseCase playerUseCases.IPlayerUseCaseService) IPlayerQueueHandlerService {
 	return &playerQueueHandler{cfg: cfg, playerUseCase: playerUseCase}
 }

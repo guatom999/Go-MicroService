@@ -10,11 +10,11 @@ type (
 	}
 
 	playerHttpHandler struct {
-		cfg           config.Config
+		cfg           *config.Config
 		playerUseCase playerUseCases.IPlayerUseCaseService
 	}
 )
 
-func NewPlayerHttpHandler(cfg config.Config, playerUseCase playerUseCases.IPlayerUseCaseService) IPlayerHttpHandlerService {
+func NewPlayerHttpHandler(cfg *config.Config, playerUseCase playerUseCases.IPlayerUseCaseService) IPlayerHttpHandlerService {
 	return &playerHttpHandler{cfg: cfg, playerUseCase: playerUseCase}
 }
