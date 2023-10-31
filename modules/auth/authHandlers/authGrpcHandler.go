@@ -8,6 +8,6 @@ type (
 	}
 )
 
-func NewAuthGrpcHandler(authUseCase authUseCases.IAuthUseCaseService) authUseCases.IAuthUseCaseService {
+func NewAuthGrpcHandler(authUseCase authUseCases.IAuthUseCaseService) *authGrpcHandler {
 	return &authGrpcHandler{authUseCase: authUseCase}
 }
