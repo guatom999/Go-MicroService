@@ -1,4 +1,4 @@
-package authrepositories
+package authRepositories
 
 import (
 	"context"

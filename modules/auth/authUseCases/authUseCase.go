@@ -1,16 +1,16 @@
 package authUseCases
 
-import authrepositories "github.com/guatom999/Go-MicroService/modules/auth/authRepositories"
+import "github.com/guatom999/Go-MicroService/modules/auth/authRepositories"
 
 type (
 	IAuthUseCaseService interface {
 	}
 
 	authUseCase struct {
-		authRepo authrepositories.IAuthRepositoryService
+		authRepo authRepositories.IAuthRepositoryService
 	}
 )
 
-func NewAuthUseCase(authRepo authrepositories.IAuthRepositoryService) IAuthUseCaseService {
+func NewAuthUseCase(authRepo authRepositories.IAuthRepositoryService) IAuthUseCaseService {
 	return &authUseCase{authRepo: authRepo}
 }
