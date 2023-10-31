@@ -1,6 +1,7 @@
 version: '3.8'
-name: hello-sekai-shop-db
- 
+
+name: "microservice-shop"
+
 services:
   auth-db:
     image: mongo
@@ -10,7 +11,6 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: 123456
- 
   item-db:
     image: mongo
     container_name: item-db
@@ -19,7 +19,6 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: 123456
- 
   player-db:
     image: mongo
     container_name: player-db
@@ -28,7 +27,6 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: 123456
- 
   inventory-db:
     image: mongo
     container_name: inventory-db
@@ -37,7 +35,6 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: 123456
-  
   payment-db:
     image: mongo
     container_name: payment-db
