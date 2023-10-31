@@ -25,4 +25,5 @@ func main() {
 	defer db.Disconnect(ctx)
 
 	log.Println(db)
+
 }
