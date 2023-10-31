@@ -8,7 +8,6 @@ import (
 
 type (
 	IPlayerRepositoryService interface {
-		playerDbConn(pctx context.Context) *mongo.Database
 	}
 
 	playerRepository struct {

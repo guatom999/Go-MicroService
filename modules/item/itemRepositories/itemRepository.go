@@ -8,7 +8,6 @@ import (
 
 type (
 	IItemRepositoryService interface {
-		itemDbConn(pctx context.Context) *mongo.Database
 	}
 
 	itemRepository struct {

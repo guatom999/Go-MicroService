@@ -8,7 +8,6 @@ import (
 
 type (
 	IAuthRepositoryService interface {
-		authDbConn(pctx context.Context) *mongo.Database
 	}
 
 	authRepository struct {
