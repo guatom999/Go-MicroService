@@ -11,6 +11,6 @@ type (
 	}
 )
 
-func NewMiddlewareUseCaseService(middlewareRepo middlewareRepositories.IMiddlewareRepositoryService) IMiddlewareUseCaseService {
+func NewMiddlewareUseCase(middlewareRepo middlewareRepositories.IMiddlewareRepositoryService) IMiddlewareUseCaseService {
 	return &middlewareUseCase{middlewareRepo: middlewareRepo}
 }

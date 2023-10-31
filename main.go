@@ -7,6 +7,7 @@ import (
 
 	"github.com/guatom999/Go-MicroService/config"
 	"github.com/guatom999/Go-MicroService/pkg/database"
+	"github.com/guatom999/Go-MicroService/server"
 )
 
 func main() {
@@ -23,6 +24,8 @@ func main() {
 	db := database.DbConn(ctx, &cfg)
 
 	defer db.Disconnect(ctx)
+
+	server.Start(ctx, &cfg, db)
 
 	log.Println(db)
 
