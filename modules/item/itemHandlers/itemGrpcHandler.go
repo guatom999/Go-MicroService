@@ -8,6 +8,6 @@ type (
 	}
 )
 
-func NewitemGrpcHandler(itemUseCase itemUseCases.IItemUseCaseService) *itemGrpcHandler {
+func NewItemGrpcHandler(itemUseCase itemUseCases.IItemUseCaseService) *itemGrpcHandler {
 	return &itemGrpcHandler{itemUseCase: itemUseCase}
 }

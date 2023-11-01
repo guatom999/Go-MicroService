@@ -10,6 +10,6 @@ type (
 	}
 )
 
-func NewplayerGrpcHandler(playerUseCase playerUseCases.IPlayerUseCaseService) *playerGrpcHandler {
+func NewPlayerGrpcHandler(playerUseCase playerUseCases.IPlayerUseCaseService) *playerGrpcHandler {
 	return &playerGrpcHandler{playerUseCase: playerUseCase}
 }

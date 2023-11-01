@@ -15,7 +15,7 @@ type (
 	}
 )
 
-func NewPaymentHandler(config *config.Config, paymentUseCase paymentUseCases.IPaymentUseCaseService) IPaymentHttpHandlerService {
+func NewPaymentHttpHandler(config *config.Config, paymentUseCase paymentUseCases.IPaymentUseCaseService) IPaymentHttpHandlerService {
 	return &paymentHttpHandler{
 		config:         config,
 		paymentUseCase: paymentUseCase,

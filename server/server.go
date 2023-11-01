@@ -86,10 +86,15 @@ func Start(pctx context.Context, cfg *config.Config, db *mongo.Client) {
 
 	switch s.cfg.App.Name {
 	case "auth":
+		s.authService()
 	case "inventory":
+		s.inventoryService()
 	case "item":
+		s.itemService()
 	case "payment":
+		s.paymentService()
 	case "player":
+		s.playerService()
 	}
 
 	close := make(chan os.Signal, 1)

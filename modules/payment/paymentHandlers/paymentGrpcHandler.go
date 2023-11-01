@@ -8,6 +8,6 @@ type (
 	}
 )
 
-func NewpaymentGrpcHandler(paymentUseCase paymentUseCases.IPaymentUseCaseService) *paymentGrpcHandler {
+func NewPaymentGrpcHandler(paymentUseCase paymentUseCases.IPaymentUseCaseService) *paymentGrpcHandler {
 	return &paymentGrpcHandler{paymentUseCase: paymentUseCase}
 }
