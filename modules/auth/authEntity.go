@@ -13,8 +13,8 @@ type (
 		RoldCode     []int              `json:"rold_code" bson:"old_code"`
 		AccessToken  string             `json:"access_token" bson:"access_token"`
 		ReFreshToken string             `json:"refresh_token" bson:"refresh_token"`
-		CreatedAt    time.Time          `json:"created_at"`
-		UpdatedAt    time.Time          `json:"updated_at"`
+		CreatedAt    time.Time          `json:"created_at" bson:"created_at"`
+		UpdatedAt    time.Time          `json:"updated_at" bson:"updated_at"`
 	}
 
 	Role struct {
