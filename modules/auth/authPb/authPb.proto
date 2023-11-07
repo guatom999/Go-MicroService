@@ -1,0 +1,30 @@
+//Version
+syntax = "proto3";
+
+//Package Name
+option go_package = "github.com/guatom999/Go-MicroService";
+
+
+// Structures
+message CredentialSearchReq {
+    string accessToken = 1;
+}
+
+message CredentialRes {
+    bool inValid = 1;
+}
+
+
+message RoleCountReq {
+    int64 count = 1;
+}
+
+message RoleCountRes {
+}
+
+
+
+service AuthGrpcService {
+    rpc CredentialSearch(CredentialSearchReq) returns (CredentialRes);
+    rpc RoleCount(RoleCountReq) returns (RoleCountRes);
+}

@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+option go_package = "github.com/guatom999/Go-MicroService";
+
+message IsAvaliableToSellReq {
+    string playerId = 1;
+    string itemId = 2;
+}
+
+message IsAvaliableToSellRes {
+    bool isAvaliable = 1;
+}
+
+
+service InventoryGrpcService {
+    rpc IsAvaliableToSell(IsAvaliableToSellReq) returns (IsAvaliableToSellRes);
+}
