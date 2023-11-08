@@ -17,6 +17,7 @@ func main() {
 		if len(os.Args) < 2 {
 			log.Fatal("Error: .env path is required")
 		}
+		log.Printf("choosen env is :%v", os.Args[1])
 		return os.Args[1]
 	}())
 
