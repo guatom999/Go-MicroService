@@ -97,6 +97,7 @@ func Start(pctx context.Context, cfg *config.Config, db *mongo.Client) {
 		s.playerService()
 	}
 
+	//close
 	close := make(chan os.Signal, 1)
 	signal.Notify(close, syscall.SIGINT, syscall.SIGTERM)
 
