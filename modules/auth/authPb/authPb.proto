@@ -6,11 +6,11 @@ option go_package = "github.com/guatom999/Go-MicroService";
 
 
 // Structures
-message CredentialSearchReq {
+message AccessToKenSearchReq {
     string accessToken = 1;
 }
 
-message CredentialRes {
+message AccessToKenSearchRes {
     bool inValid = 1;
 }
 
@@ -25,6 +25,6 @@ message RoleCountRes {
 
 
 service AuthGrpcService {
-    rpc CredentialSearch(CredentialSearchReq) returns (CredentialRes);
+    rpc AccessToKenSearch(AccessToKenSearchReq) returns (AccessToKenSearchRes);
     rpc RoleCount(RoleCountReq) returns (RoleCountRes);
 }

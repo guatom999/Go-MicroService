@@ -1,9 +1,14 @@
 package server
 
 import (
+	"log"
+
 	"github.com/guatom999/Go-MicroService/modules/player/playerHandlers"
+	playerPb "github.com/guatom999/Go-MicroService/modules/player/playerPb"
+
 	"github.com/guatom999/Go-MicroService/modules/player/playerRepositories"
 	"github.com/guatom999/Go-MicroService/modules/player/playerUseCases"
+	"github.com/guatom999/Go-MicroService/pkg/grpccon"
 )
 
 func (s *server) playerService() {
@@ -14,8 +19,20 @@ func (s *server) playerService() {
 	playerQueueHandler := playerHandlers.NewPlayerQueueHandler(s.cfg, playerUseCase)
 
 	_ = playerHtppHandler
-	_ = playerGrpcHandler
+	// _ = playerGrpcHandler
 	_ = playerQueueHandler
+
+	go func() {
+
+		grpcServer, lis := grpccon.NewGrpcServer(&s.cfg.Jwt, s.cfg.Grpc.PlayerUrl)
+
+		playerPb.RegisterPlayerGrpcServiceServer(grpcServer, playerGrpcHandler)
+
+		log.Printf("Inventory Grpc server listening on: %s", s.cfg.Grpc.ItemUrl)
+
+		grpcServer.Serve(lis)
+
+	}()
 
 	player := s.app.Group("/player_v1")
 

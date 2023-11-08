@@ -20,7 +20,7 @@ func NewAuthGrpcHandler(authUseCase authUseCases.IAuthUseCaseService) *authGrpcH
 	}
 }
 
-func (g *authGrpcHandler) CredientialSearch(ctx context.Context, req *authPb.CredentialSearchReq) (*authPb.CredentialRes, error) {
+func (g *authGrpcHandler) CredientialSearch(ctx context.Context, req *authPb.AccessToKenSearchReq) (*authPb.AccessToKenSearchRes, error) {
 	return nil, nil
 }
 

@@ -22,7 +22,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AuthGrpcServiceClient interface {
-	CredentialSearch(ctx context.Context, in *CredentialSearchReq, opts ...grpc.CallOption) (*CredentialRes, error)
+	AccessToKenSearch(ctx context.Context, in *AccessToKenSearchReq, opts ...grpc.CallOption) (*AccessToKenSearchRes, error)
 	RoleCount(ctx context.Context, in *RoleCountReq, opts ...grpc.CallOption) (*RoleCountRes, error)
 }
 
@@ -34,9 +34,9 @@ func NewAuthGrpcServiceClient(cc grpc.ClientConnInterface) AuthGrpcServiceClient
 	return &authGrpcServiceClient{cc}
 }
 
-func (c *authGrpcServiceClient) CredentialSearch(ctx context.Context, in *CredentialSearchReq, opts ...grpc.CallOption) (*CredentialRes, error) {
-	out := new(CredentialRes)
-	err := c.cc.Invoke(ctx, "/AuthGrpcService/CredentialSearch", in, out, opts...)
+func (c *authGrpcServiceClient) AccessToKenSearch(ctx context.Context, in *AccessToKenSearchReq, opts ...grpc.CallOption) (*AccessToKenSearchRes, error) {
+	out := new(AccessToKenSearchRes)
+	err := c.cc.Invoke(ctx, "/AuthGrpcService/AccessToKenSearch", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +56,7 @@ func (c *authGrpcServiceClient) RoleCount(ctx context.Context, in *RoleCountReq,
 // All implementations must embed UnimplementedAuthGrpcServiceServer
 // for forward compatibility
 type AuthGrpcServiceServer interface {
-	CredentialSearch(context.Context, *CredentialSearchReq) (*CredentialRes, error)
+	AccessToKenSearch(context.Context, *AccessToKenSearchReq) (*AccessToKenSearchRes, error)
 	RoleCount(context.Context, *RoleCountReq) (*RoleCountRes, error)
 	mustEmbedUnimplementedAuthGrpcServiceServer()
 }
@@ -65,8 +65,8 @@ type AuthGrpcServiceServer interface {
 type UnimplementedAuthGrpcServiceServer struct {
 }
 
-func (UnimplementedAuthGrpcServiceServer) CredentialSearch(context.Context, *CredentialSearchReq) (*CredentialRes, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CredentialSearch not implemented")
+func (UnimplementedAuthGrpcServiceServer) AccessToKenSearch(context.Context, *AccessToKenSearchReq) (*AccessToKenSearchRes, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AccessToKenSearch not implemented")
 }
 func (UnimplementedAuthGrpcServiceServer) RoleCount(context.Context, *RoleCountReq) (*RoleCountRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RoleCount not implemented")
@@ -84,20 +84,20 @@ func RegisterAuthGrpcServiceServer(s grpc.ServiceRegistrar, srv AuthGrpcServiceS
 	s.RegisterService(&AuthGrpcService_ServiceDesc, srv)
 }
 
-func _AuthGrpcService_CredentialSearch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CredentialSearchReq)
+func _AuthGrpcService_AccessToKenSearch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AccessToKenSearchReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AuthGrpcServiceServer).CredentialSearch(ctx, in)
+		return srv.(AuthGrpcServiceServer).AccessToKenSearch(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/AuthGrpcService/CredentialSearch",
+		FullMethod: "/AuthGrpcService/AccessToKenSearch",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthGrpcServiceServer).CredentialSearch(ctx, req.(*CredentialSearchReq))
+		return srv.(AuthGrpcServiceServer).AccessToKenSearch(ctx, req.(*AccessToKenSearchReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -128,8 +128,8 @@ var AuthGrpcService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*AuthGrpcServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "CredentialSearch",
-			Handler:    _AuthGrpcService_CredentialSearch_Handler,
+			MethodName: "AccessToKenSearch",
+			Handler:    _AuthGrpcService_AccessToKenSearch_Handler,
 		},
 		{
 			MethodName: "RoleCount",
