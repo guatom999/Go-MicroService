@@ -7,7 +7,9 @@ import (
 	"github.com/guatom999/Go-MicroService/config"
 	"github.com/guatom999/Go-MicroService/modules/player"
 	"github.com/guatom999/Go-MicroService/pkg/database"
+	"github.com/guatom999/Go-MicroService/pkg/utils"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -48,6 +50,45 @@ func PlayerMigrate(pctx context.Context, cfg *config.Config) {
 			{
 				Email:    "test_player@hotmail.com",
 				Password: "123456",
+				Username: "Player001",
+				PlayerRoles: []player.PlayerRole{
+					{
+						RoleTitle: "player",
+						RoleCode:  0,
+					},
+				},
+				CreatedAt: utils.LocalTime(),
+				UpdatedAt: utils.LocalTime(),
+			},
+			{
+				Email:    "test_player002@hotmail.com",
+				Password: "123456",
+				Username: "Player002",
+				PlayerRoles: []player.PlayerRole{
+					{
+						RoleTitle: "player",
+						RoleCode:  0,
+					},
+				},
+				CreatedAt: utils.LocalTime(),
+				UpdatedAt: utils.LocalTime(),
+			},
+			{
+				Email:    "admin003@hotmail.com",
+				Password: "123456",
+				Username: "Admin003",
+				PlayerRoles: []player.PlayerRole{
+					{
+						RoleTitle: "player",
+						RoleCode:  0,
+					},
+					{
+						RoleTitle: "admin",
+						RoleCode:  1,
+					},
+				},
+				CreatedAt: utils.LocalTime(),
+				UpdatedAt: utils.LocalTime(),
 			},
 		}
 
@@ -58,5 +99,39 @@ func PlayerMigrate(pctx context.Context, cfg *config.Config) {
 
 		return docs
 	}()
+
+	results, err := col.InsertMany(pctx, documents)
+	if err != nil {
+		panic(err)
+	}
+	log.Printf("Migrated player completed:%v", results)
+
+	playerTransactions := make([]any, 0)
+	for _, p := range results.InsertedIDs {
+		playerTransactions = append(playerTransactions, player.PlayerTransaction{
+			PlayerId:  "player:" + p.(primitive.ObjectID).Hex(),
+			Amount:    1000,
+			CreatedAt: utils.LocalTime(),
+			UpdatedAt: utils.LocalTime(),
+		})
+
+	}
+
+	col = db.Collection("player_transactions")
+	results, err = col.InsertMany(pctx, playerTransactions)
+	if err != nil {
+		panic(err)
+	}
+
+	log.Println("Migrated player_transaction completed:", results)
+
+	col = db.Collection("player_transactions_queue")
+
+	result, err := col.InsertOne(pctx, bson.M{"offset": -1}, nil)
+	if err != nil {
+		panic(err)
+	}
+
+	log.Println("Migrate player_transactions_queue completed:", result)
 
 }

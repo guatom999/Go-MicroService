@@ -2,6 +2,7 @@ package playerRepositories
 
 import (
 	"context"
+	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -21,4 +22,11 @@ func NewPlayerRepository(db *mongo.Client) IPlayerRepositoryService {
 
 func (r *playerRepository) playerDbConn(pctx context.Context) *mongo.Database {
 	return r.db.Database("player_db")
+}
+
+func (r *playerRepository) IsUniquePlayer(pctx context.Context, email string, username string) bool {
+	ctx, cancel := context.WithTimeout(pctx, time.Second*10)
+	defer cancel()
+
+	db := r.playerDbConn(ctx)
 }

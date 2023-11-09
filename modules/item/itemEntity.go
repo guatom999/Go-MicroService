@@ -10,7 +10,7 @@ type (
 	Item struct {
 		Id          primitive.ObjectID `json:"_id" bson:"_id,omitempty"`
 		Title       string             `json:"title" bson:"title"`
-		Price       string             `json:"price" bson:"price"`
+		Price       float64            `json:"price" bson:"price"`
 		Damage      int                `json:"damage" bson:"damage"`
 		ImageUrl    string             `json:"image_url" bson:"image_url"`
 		UsageStatus bool               `json:"usage_status" bson:"usage_status"`
