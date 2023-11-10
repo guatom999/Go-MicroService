@@ -19,7 +19,6 @@ func (s *server) playerService() {
 	playerQueueHandler := playerHandlers.NewPlayerQueueHandler(s.cfg, playerUseCase)
 
 	_ = playerHtppHandler
-	// _ = playerGrpcHandler
 	_ = playerQueueHandler
 
 	go func() {
@@ -34,8 +33,11 @@ func (s *server) playerService() {
 
 	}()
 
-	player := s.app.Group("/player_v1")
+	playerRoute := s.app.Group("/player_v1")
 
 	// Health Check
-	player.GET("", s.healthCheckService)
+	playerRoute.GET("", s.healthCheckService)
+
+	playerRoute.POST("/player/register", playerHtppHandler.CreatePlayer)
+
 }
