@@ -23,9 +23,11 @@ type (
 	}
 
 	PlayerProfileBson struct {
-		Id       primitive.ObjectID `json:"_id" bson:"_id,omitempty"`
-		Email    string             `json:"email" bson:"email"`
-		Username string             `json:"username" bson:"username"`
+		Id        primitive.ObjectID `json:"_id" bson:"_id,omitempty"`
+		Email     string             `json:"email" bson:"email"`
+		Username  string             `json:"username" bson:"username"`
+		CreatedAt time.Time          `json:"created_at" bson:"created_at"`
+		UpdatedAt time.Time          `json:"updated_at" bson:"updated_at"`
 	}
 	PlayerSavingAccount struct {
 		PlayerId string  `json:"player_id" bson:"player_id"`

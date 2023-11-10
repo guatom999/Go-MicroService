@@ -3,6 +3,7 @@ package playerHandlers
 import (
 	"context"
 	"net/http"
+	"strings"
 
 	"github.com/guatom999/Go-MicroService/config"
 	"github.com/guatom999/Go-MicroService/modules/player"
@@ -15,6 +16,7 @@ import (
 type (
 	IPlayerHttpHandlerService interface {
 		CreatePlayer(c echo.Context) error
+		FindOnePlayerProfile(c echo.Context) error
 	}
 
 	playerHttpHandler struct {
@@ -45,4 +47,18 @@ func (h *playerHttpHandler) CreatePlayer(c echo.Context) error {
 	}
 
 	return response.SuccessResponse(c, http.StatusCreated, res)
+}
+
+func (h *playerHttpHandler) FindOnePlayerProfile(c echo.Context) error {
+
+	ctx := context.Background()
+
+	playerId := strings.TrimPrefix(c.Param("player_id"), "player:")
+
+	res, err := h.playerUseCase.FindOnePlayerProfile(ctx, playerId)
+	if err != nil {
+		return response.ErrorResponse(c, http.StatusBadRequest, err.Error())
+	}
+
+	return response.SuccessResponse(c, http.StatusOK, res)
 }

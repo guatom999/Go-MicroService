@@ -38,6 +38,7 @@ func (s *server) playerService() {
 	// Health Check
 	playerRoute.GET("", s.healthCheckService)
 
+	playerRoute.GET("/player/:player_id", playerHtppHandler.FindOnePlayerProfile)
 	playerRoute.POST("/player/register", playerHtppHandler.CreatePlayer)
 
 }
