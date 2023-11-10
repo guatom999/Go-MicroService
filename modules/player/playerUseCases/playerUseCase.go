@@ -3,7 +3,6 @@ package playerUseCases
 import (
 	"context"
 	"errors"
-	"log"
 
 	"github.com/guatom999/Go-MicroService/modules/player"
 	"github.com/guatom999/Go-MicroService/modules/player/playerRepositories"
@@ -26,8 +25,6 @@ func NewPlayerUseCase(playerRepo playerRepositories.IPlayerRepositoryService) IP
 }
 
 func (u *playerUseCase) CreatePlayer(pctx context.Context, req *player.CreatePlayerReq) (string, error) {
-
-	log.Println("bool of check same user is ===> %s\n", u.playerRepo.IsUniquePlayer(pctx, req.Email, req.Username))
 
 	if !u.playerRepo.IsUniquePlayer(pctx, req.Email, req.Username) {
 		return "", errors.New("error: email or username already exits")

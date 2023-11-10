@@ -21,7 +21,7 @@ func (s *server) itemService() {
 
 		itemPb.RegisterItemGrpcServiceServer(grpcServer, itemGrpcHandler)
 
-		log.Printf("Inventory Grpc server listening on: %s", s.cfg.Grpc.ItemUrl)
+		log.Printf("Item Grpc server listening on: %s", s.cfg.Grpc.ItemUrl)
 		grpcServer.Serve(lis)
 
 	}()

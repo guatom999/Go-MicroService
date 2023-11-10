@@ -29,6 +29,7 @@ func NewPlayerHttpHandler(cfg *config.Config, playerUseCase playerUseCases.IPlay
 
 func (h *playerHttpHandler) CreatePlayer(c echo.Context) error {
 	ctx := context.Background()
+	// _ = ctx
 
 	wrapper := request.ContextWrapper(c)
 

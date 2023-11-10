@@ -32,7 +32,7 @@ func (r *playerRepository) playerDbConn(pctx context.Context) *mongo.Database {
 }
 
 func (r *playerRepository) IsUniquePlayer(pctx context.Context, email string, username string) bool {
-	ctx, cancel := context.WithTimeout(pctx, time.Second*10)
+	ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
 	defer cancel()
 
 	db := r.playerDbConn(ctx)
@@ -43,15 +43,12 @@ func (r *playerRepository) IsUniquePlayer(pctx context.Context, email string, us
 		ctx,
 		bson.M{"$or": []bson.M{
 			{"username": username},
-			{"email": email},
 		}},
 	).Decode(player); err != nil {
-		log.Printf("Error: Is UniquePlayer: %s", err)
+		log.Printf("Error: IsUniquePlayer: %s", err.Error())
 		return true
 	}
-
 	return false
-
 }
 
 func (r *playerRepository) InsertOnePlayer(pctx context.Context, req *player.Player) (primitive.ObjectID, error) {
