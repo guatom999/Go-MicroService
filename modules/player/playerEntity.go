@@ -9,12 +9,12 @@ import (
 type (
 	Player struct {
 		Id          primitive.ObjectID `json:"_id" bson:"_id,omitempty"`
-		Email       string             `json:"email" bson:"_email"`
-		Password    string             `json:"password" bson:"_password"`
-		Username    string             `json:"username" bson:"_username"`
+		Email       string             `json:"email" bson:"email"`
+		Password    string             `json:"password" bson:"password"`
+		Username    string             `json:"username" bson:"username"`
 		CreatedAt   time.Time          `json:"created_at" bson:"created_at"`
 		UpdatedAt   time.Time          `json:"updated_at" bson:"updated_at"`
-		PlayerRoles []PlayerRole       `bson:"player_role"`
+		PlayerRoles []PlayerRole       `bson:"player_roles"`
 	}
 
 	PlayerRole struct {
