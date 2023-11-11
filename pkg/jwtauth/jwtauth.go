@@ -73,3 +73,41 @@ func NewAccessToken(secret string, expiredAt int64, claims *Claims) AuthFactory 
 		},
 	}
 }
+
+func NewRefreshToken(secret string, expiredAt int64, claims *Claims) AuthFactory {
+	return &refreshToken{
+		authConcrete: &authConcrete{
+			Secret: []byte(secret),
+			Claims: &AuthMapClaims{
+				Claims: claims,
+				RegisteredClaims: jwt.RegisteredClaims{
+					Issuer:    "hellomicroservice.com",
+					Subject:   "refresh-token",
+					Audience:  []string{"hellomicroservice.com"},
+					ExpiresAt: jwtTimeDurationCal(expiredAt),
+					NotBefore: jwt.NewNumericDate(now()),
+					IssuedAt:  jwt.NewNumericDate(now()),
+				},
+			},
+		},
+	}
+}
+
+func ReloadToken(secret string, expiredAt int64, claims *Claims) string {
+	obj := &refreshToken{
+		authConcrete: &authConcrete{
+			Secret: []byte(secret),
+			Claims: &AuthMapClaims{
+				Claims: claims,
+				RegisteredClaims: jwt.RegisteredClaims{
+					Issuer:    "hellomicroservice.com",
+					Subject:   "access-token",
+					Audience:  []string{"hellomicroservice.com"},
+					ExpiresAt: jwtTimeRepeatAdapter(expiredAt),
+					NotBefore: jwt.NewNumericDate(now()),
+					IssuedAt:  jwt.NewNumericDate(now()),
+				},
+			},
+		},
+	}
+}
