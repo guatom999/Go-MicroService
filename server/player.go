@@ -40,5 +40,6 @@ func (s *server) playerService() {
 
 	playerRoute.GET("/player/:player_id", playerHtppHandler.FindOnePlayerProfile)
 	playerRoute.POST("/player/register", playerHtppHandler.CreatePlayer)
+	playerRoute.POST("/player/add-moeny", playerHtppHandler.AddPlayerMoney)
 
 }

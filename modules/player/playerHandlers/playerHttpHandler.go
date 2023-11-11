@@ -17,6 +17,7 @@ type (
 	IPlayerHttpHandlerService interface {
 		CreatePlayer(c echo.Context) error
 		FindOnePlayerProfile(c echo.Context) error
+		AddPlayerMoney(c echo.Context) error
 	}
 
 	playerHttpHandler struct {
@@ -61,4 +62,25 @@ func (h *playerHttpHandler) FindOnePlayerProfile(c echo.Context) error {
 	}
 
 	return response.SuccessResponse(c, http.StatusOK, res)
+}
+
+func (h *playerHttpHandler) AddPlayerMoney(c echo.Context) error {
+
+	ctx := context.Background()
+
+	wrapper := request.ContextWrapper(c)
+
+	req := new(player.CreatePlayerTransactionReq)
+
+	if err := wrapper.Bind(req); err != nil {
+		return response.ErrorResponse(c, http.StatusBadRequest, err.Error())
+	}
+
+	if err := h.playerUseCase.AddPlayerMoney(ctx, req); err != nil {
+		return response.ErrorResponse(c, http.StatusBadRequest, err.Error())
+	}
+
+	return response.SuccessResponse(c, http.StatusOK, map[string]string{
+		"message": "success",
+	})
 }

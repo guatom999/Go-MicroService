@@ -16,6 +16,7 @@ type (
 	IPlayerUseCaseService interface {
 		CreatePlayer(pctx context.Context, req *player.CreatePlayerReq) (*player.PlayerProfile, error)
 		FindOnePlayerProfile(pctx context.Context, playerId string) (*player.PlayerProfile, error)
+		AddPlayerMoney(pctx context.Context, req *player.CreatePlayerTransactionReq) error
 	}
 
 	playerUseCase struct {
@@ -76,4 +77,18 @@ func (u *playerUseCase) FindOnePlayerProfile(pctx context.Context, playerId stri
 		CreatedAt: result.CreatedAt.In(loc),
 		UpdatedAt: result.UpdatedAt.In(loc),
 	}, nil
+}
+
+func (u *playerUseCase) AddPlayerMoney(pctx context.Context, req *player.CreatePlayerTransactionReq) error {
+
+	if err := u.playerRepo.InsertOnePlayerTransaction(pctx, &player.PlayerTransaction{
+		PlayerId:  req.PlayerId,
+		Amount:    req.Amount,
+		CreatedAt: utils.LocalTime(),
+	}); err != nil {
+		return err
+	}
+
+	//Get player saving account
+	return nil
 }
