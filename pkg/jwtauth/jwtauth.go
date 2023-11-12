@@ -1,10 +1,14 @@
 package jwtauth
 
 import (
+	"context"
+	"errors"
 	"math"
+	"sync"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"google.golang.org/grpc/metadata"
 )
 
 type (
@@ -110,4 +114,68 @@ func ReloadToken(secret string, expiredAt int64, claims *Claims) string {
 			},
 		},
 	}
+
+	return obj.SignToken()
+}
+
+func NewApiKey(secret string) AuthFactory {
+	return &apikey{
+		authConcrete: &authConcrete{
+			Secret: []byte(secret),
+			Claims: &AuthMapClaims{
+				Claims: &Claims{},
+				RegisteredClaims: jwt.RegisteredClaims{
+					Issuer:    "hellomicroservice.com",
+					Subject:   "api-key",
+					Audience:  []string{"hellomicroservice.com"},
+					ExpiresAt: jwtTimeDurationCal(31560000),
+					NotBefore: jwt.NewNumericDate(now()),
+					IssuedAt:  jwt.NewNumericDate(now()),
+				},
+			},
+		},
+	}
+}
+
+func ParseToken(secret string, tokenString string) (*AuthMapClaims, error) {
+
+	token, err := jwt.ParseWithClaims(tokenString, &AuthMapClaims{}, func(token *jwt.Token) (any, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("error: unexpected signing method")
+		}
+
+		return []byte(secret), nil
+	})
+
+	if err != nil {
+		if errors.Is(err, jwt.ErrTokenMalformed) {
+			errors.New("error: token format is invalid")
+		} else if errors.Is(err, jwt.ErrTokenExpired) {
+			errors.New("error: token is expired")
+		} else {
+			errors.New("error: token is invalid")
+		}
+	}
+
+	if claims, ok := token.Claims.(*AuthMapClaims); ok {
+		return claims, nil
+	} else {
+		return nil, errors.New("error: claims type is invalid")
+
+	}
+
+}
+
+// Apikey instant
+var apiKeyInstant string
+var once sync.Once
+
+func SetApiKey(secret string) {
+	once.Do(func() {
+		apiKeyInstant = NewApiKey(secret).SignToken()
+	})
+}
+
+func SetApiKeyInContext(pctx *context.Context) {
+	*pctx = metadata.NewOutgoingContext(*pctx, metadata.Pairs("auth", apiKeyInstant))
 }
