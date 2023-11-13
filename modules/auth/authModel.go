@@ -23,15 +23,15 @@ type (
 
 	ProfileIntercepter struct {
 		*player.PlayerProfile
-		Credential *Credential `json:"credential"`
+		Credential *CredentialRes `json:"credential"`
 	}
 
 	CredentialRes struct {
-		Id           string    `json:"_id" bson:"_id,omitempty"`
-		PlayerId     string    `json:"player_id" bson:"player_id"`
-		RoldCode     []int     `json:"rold_code" bson:"old_code"`
-		AccessToken  string    `json:"access_token" bson:"access_token"`
-		ReFreshToken string    `json:"refresh_token" bson:"refresh_token"`
+		Id           string    `json:"_id" `
+		PlayerId     string    `json:"player_id" `
+		RoldCode     int       `json:"rold_code" `
+		AccessToken  string    `json:"access_token" `
+		ReFreshToken string    `json:"refresh_token"`
 		CreatedAt    time.Time `json:"created_at"`
 		UpdatedAt    time.Time `json:"updated_at"`
 	}

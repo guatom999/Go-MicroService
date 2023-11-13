@@ -8,13 +8,13 @@ import (
 
 type (
 	Credential struct {
-		Id           primitive.ObjectID `json:"_id" bson:"_id,omitempty"`
-		PlayerId     string             `json:"player_id" bson:"player_id"`
-		RoldCode     []int              `json:"rold_code" bson:"old_code"`
-		AccessToken  string             `json:"access_token" bson:"access_token"`
-		ReFreshToken string             `json:"refresh_token" bson:"refresh_token"`
-		CreatedAt    time.Time          `json:"created_at" bson:"created_at"`
-		UpdatedAt    time.Time          `json:"updated_at" bson:"updated_at"`
+		Id           primitive.ObjectID `bson:"_id,omitempty"`
+		PlayerId     string             `bson:"player_id"`
+		RoldCode     int                `bson:"old_code"`
+		AccessToken  string             `bson:"access_token"`
+		ReFreshToken string             `bson:"refresh_token"`
+		CreatedAt    time.Time          `bson:"created_at"`
+		UpdatedAt    time.Time          `bson:"updated_at"`
 	}
 
 	Role struct {
