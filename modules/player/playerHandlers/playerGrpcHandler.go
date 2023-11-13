@@ -19,7 +19,8 @@ func NewPlayerGrpcHandler(playerUseCase playerUseCases.IPlayerUseCaseService) *p
 }
 
 func (g *playerGrpcHandler) CredetialSearch(ctx context.Context, req *playerPb.CredetialSearchReq) (*playerPb.PlayerProfile, error) {
-	return nil, nil
+
+	return g.playerUseCase.FindOnePlayerCredential(ctx, req.Password, req.Email)
 }
 
 func (g *playerGrpcHandler) FindOnePlayerProfileToRefresh(ctx context.Context, req *playerPb.FindOnePlayerProfileToRefreshReq) (*playerPb.PlayerProfile, error) {

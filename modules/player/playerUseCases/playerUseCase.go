@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/guatom999/Go-MicroService/modules/player"
+	playerPb "github.com/guatom999/Go-MicroService/modules/player/playerPb"
 	"github.com/guatom999/Go-MicroService/modules/player/playerRepositories"
 	"github.com/guatom999/Go-MicroService/pkg/utils"
 	"golang.org/x/crypto/bcrypt"
@@ -18,6 +19,7 @@ type (
 		FindOnePlayerProfile(pctx context.Context, playerId string) (*player.PlayerProfile, error)
 		AddPlayerMoney(pctx context.Context, req *player.CreatePlayerTransactionReq) (*player.PlayerSavingAccount, error)
 		GetPlayerSavingAccount(pctx context.Context, playerId string) (*player.PlayerSavingAccount, error)
+		FindOnePlayerCredential(pctx context.Context, password string, email string) (*playerPb.PlayerProfile, error)
 	}
 
 	playerUseCase struct {
@@ -102,4 +104,34 @@ func (u *playerUseCase) GetPlayerSavingAccount(pctx context.Context, playerId st
 	}
 
 	return result, nil
+}
+
+func (u *playerUseCase) FindOnePlayerCredential(pctx context.Context, password string, email string) (*playerPb.PlayerProfile, error) {
+
+	result, err := u.playerRepo.FindOnePlayerCredential(pctx, email)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(password), []byte(result.Password)); err != nil {
+		log.Panicf("Error: FindOnePlayerCredential failed:%s", err.Error())
+		return nil, err
+	}
+
+	roleCode := 0
+
+	for _, v := range result.PlayerRoles {
+		roleCode += v.RoleCode
+	}
+
+	loc, _ := time.LoadLocation("Asia/Bangkok")
+
+	return &playerPb.PlayerProfile{
+		Id:        result.Id.Hex(),
+		Email:     result.Email,
+		Username:  result.Username,
+		RoleCode:  int32(roleCode),
+		CreatedAt: result.CreatedAt.In(loc).String(),
+		UpdatedAt: result.UpdatedAt.In(loc).String(),
+	}, nil
 }

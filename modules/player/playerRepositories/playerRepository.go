@@ -21,6 +21,7 @@ type (
 		FindOnePlayerProfile(pctx context.Context, playerId string) (*player.PlayerProfileBson, error)
 		InsertOnePlayerTransaction(pctx context.Context, req *player.PlayerTransaction) error
 		GetPlayerSavingAccount(pctx context.Context, playerId string) (*player.PlayerSavingAccount, error)
+		FindOnePlayerCredential(pctx context.Context, email string) (*player.Player, error)
 	}
 
 	playerRepository struct {
@@ -163,6 +164,24 @@ func (r *playerRepository) GetPlayerSavingAccount(pctx context.Context, playerId
 			log.Printf("Error: failed to decode player saving account:%s", err.Error())
 			return nil, errors.New("error: failed to get player saving account")
 		}
+	}
+
+	return result, nil
+}
+
+func (r *playerRepository) FindOnePlayerCredential(pctx context.Context, email string) (*player.Player, error) {
+
+	ctx, cancel := context.WithTimeout(pctx, time.Second*30)
+	defer cancel()
+
+	db := r.playerDbConn(ctx)
+	col := db.Collection("player_db")
+
+	result := new(player.Player)
+
+	if err := col.FindOne(ctx, bson.M{"email": email}).Decode(result); err != nil {
+		log.Printf("Error: FindOnePlayerCredential:%s", err.Error())
+		return nil, errors.New("error: email is invalid")
 	}
 
 	return result, nil
