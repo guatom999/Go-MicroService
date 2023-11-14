@@ -24,7 +24,7 @@ func (g *playerGrpcHandler) CredetialSearch(ctx context.Context, req *playerPb.C
 }
 
 func (g *playerGrpcHandler) FindOnePlayerProfileToRefresh(ctx context.Context, req *playerPb.FindOnePlayerProfileToRefreshReq) (*playerPb.PlayerProfile, error) {
-	return nil, nil
+	return g.playerUseCase.FindOnePlayerProfileToRefresh(ctx, req.PlayerId)
 }
 
 func (g *playerGrpcHandler) GetPlayerSavingAccount(ctx context.Context, req *playerPb.GetPlayerSavingAccountReq) (*playerPb.PlayerSavingAccount, error) {

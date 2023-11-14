@@ -2,6 +2,7 @@ package authUseCases
 
 import (
 	"context"
+	"log"
 	"time"
 
 	"github.com/guatom999/Go-MicroService/config"
@@ -59,6 +60,12 @@ func (u *authUseCase) Login(pctx context.Context, cfg *config.Config, req *auth.
 		UpdatedAt:    utils.LocalTime(),
 	})
 
+	credential, err := u.authRepo.FindOnePlayerCredential(pctx, credentialId.Hex())
+
+	if err != nil {
+		return nil, err
+	}
+
 	loc, _ := time.LoadLocation("Asia/Bangkok")
 
 	return &auth.ProfileIntercepter{
@@ -70,7 +77,43 @@ func (u *authUseCase) Login(pctx context.Context, cfg *config.Config, req *auth.
 			UpdatedAt: utils.ConvertStringTimeToTime(profile.UpdatedAt).In(loc),
 		},
 		Credential: &auth.CredentialRes{
-			Id: credentialId.Hex(),
+			Id:           credential.Id.Hex(),
+			PlayerId:     credential.PlayerId,
+			RoldCode:     credential.RoldCode,
+			AccessToken:  credential.AccessToken,
+			ReFreshToken: credential.ReFreshToken,
+			CreatedAt:    credential.CreatedAt.In(loc),
+			UpdatedAt:    credential.UpdatedAt.In(loc),
 		},
 	}, nil
+}
+
+func (u *authUseCase) RefreshToken(pctx context.Context, cfg *config.Config, req *auth.RefreshTokenReq) (*auth.ProfileIntercepter, error) {
+
+	claims, err := jwtauth.ParseToken(cfg.Jwt.RefreshSecretKey, req.RefreshToken)
+	if err != nil {
+		log.Printf("Error: RefreshToken %s", err.Error())
+		return nil, err
+	}
+
+	profile, err := u.authRepo.FindOnePlayerProfileToRefresh(pctx, cfg.Grpc.PlayerUrl, &playerPb.FindOnePlayerProfileToRefreshReq{
+		PlayerId: claims.PlayerId,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	profile.Id = "player:" + profile.Id
+
+	accessToken := jwtauth.NewAccessToken(cfg.Jwt.AccessSecretKey, cfg.Jwt.AccessDuration, &jwtauth.Claims{
+		PlayerId: profile.Id,
+		RoleCode: int(profile.RoleCode),
+	}).SignToken()
+
+	refreshToken := jwtauth.ReloadToken(cfg.Jwt.RefreshSecretKey, claims.ExpiresAt.Unix(), &jwtauth.Claims{
+		PlayerId: profile.Id,
+		RoleCode: int(profile.RoleCode),
+	})
+
+	return nil, nil
 }
