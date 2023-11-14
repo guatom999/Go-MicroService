@@ -47,7 +47,7 @@ func (r *authRepository) CredentialSearch(pctx context.Context, grpcUrl string, 
 	result, err := conn.Player().CredetialSearch(ctx, req)
 	if err != nil {
 		log.Printf("Error: credential search  failed: %s", err.Error())
-		return nil, errors.New(err.Error())
+		return nil, errors.New("error: email or password is incorrect")
 	}
 
 	return result, nil
@@ -69,4 +69,12 @@ func (r *authRepository) InsertOnePlayerCredential(pctx context.Context, req *au
 	}
 
 	return result.InsertedID.(primitive.ObjectID), nil
+}
+
+func (r *authRepository) FindOnePlayerCredential(pctx context.Context, credentialId string) (*auth.Credential, error) {
+	ctx, cancel := context.WithTimeout(pctx, time.Second*10)
+	defer cancel()
+
+	db := r.authDbConn(ctx)
+	col := db.Collection("auth")
 }

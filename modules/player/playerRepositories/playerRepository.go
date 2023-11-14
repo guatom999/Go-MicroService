@@ -175,7 +175,7 @@ func (r *playerRepository) FindOnePlayerCredential(pctx context.Context, email s
 	defer cancel()
 
 	db := r.playerDbConn(ctx)
-	col := db.Collection("player_db")
+	col := db.Collection("players")
 
 	result := new(player.Player)
 

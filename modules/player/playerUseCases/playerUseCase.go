@@ -113,8 +113,8 @@ func (u *playerUseCase) FindOnePlayerCredential(pctx context.Context, password s
 		return nil, err
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(password), []byte(result.Password)); err != nil {
-		log.Panicf("Error: FindOnePlayerCredential failed:%s", err.Error())
+	if err := bcrypt.CompareHashAndPassword([]byte(result.Password), []byte(password)); err != nil {
+		log.Printf("Error: FindOnePlayerCredential failed:%s", err.Error())
 		return nil, err
 	}
 
