@@ -119,7 +119,7 @@ func (u *authUseCase) RefreshToken(pctx context.Context, cfg *config.Config, req
 		PlayerId:     profile.Id,
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
-		Updated_At:   utils.LocalTime(),
+		UpdatedAt:    utils.LocalTime(),
 	}); err != nil {
 		return nil, err
 	}

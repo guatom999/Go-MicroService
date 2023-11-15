@@ -27,6 +27,6 @@ type (
 		PlayerId     string    `bson:"player_id"`
 		AccessToken  string    `bson:"access_token"`
 		RefreshToken string    `bson:"refresh_token"`
-		Updated_At   time.Time `bson:"updated_at"`
+		UpdatedAt    time.Time `bson:"updated_at"`
 	}
 )

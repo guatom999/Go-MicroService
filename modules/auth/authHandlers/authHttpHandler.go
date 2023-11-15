@@ -2,7 +2,6 @@ package authHandlers
 
 import (
 	"context"
-	"log"
 	"net/http"
 
 	"github.com/guatom999/Go-MicroService/config"
@@ -58,8 +57,6 @@ func (h *authHttpHandler) RefreshToken(c echo.Context) error {
 	wrapper := request.ContextWrapper(c)
 
 	req := new(auth.RefreshTokenReq)
-
-	log.Printf("[DEBUG] Refreshing tokenreq is =======> %v", req)
 
 	if err := wrapper.Bind(req); err != nil {
 		return response.ErrorResponse(c, http.StatusBadRequest, err.Error())

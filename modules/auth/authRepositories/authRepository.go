@@ -128,7 +128,7 @@ func (r *authRepository) UpdateOnePlayerCredential(pctx context.Context, credent
 				"player_id":     req.PlayerId,
 				"access_token":  req.AccessToken,
 				"refresh_token": req.RefreshToken,
-				"updated_at":    req.Updated_At,
+				"updated_at":    req.UpdatedAt,
 			},
 		},
 	)
