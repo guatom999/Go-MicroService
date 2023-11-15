@@ -3,6 +3,7 @@ package authUseCases
 import (
 	"context"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/guatom999/Go-MicroService/config"
@@ -17,6 +18,7 @@ import (
 type (
 	IAuthUseCaseService interface {
 		Login(pctx context.Context, cfg *config.Config, req *auth.PlayerLoginReq) (*auth.ProfileIntercepter, error)
+		RefreshToken(pctx context.Context, cfg *config.Config, req *auth.RefreshTokenReq) (*auth.ProfileIntercepter, error)
 	}
 
 	authUseCase struct {
@@ -97,13 +99,11 @@ func (u *authUseCase) RefreshToken(pctx context.Context, cfg *config.Config, req
 	}
 
 	profile, err := u.authRepo.FindOnePlayerProfileToRefresh(pctx, cfg.Grpc.PlayerUrl, &playerPb.FindOnePlayerProfileToRefreshReq{
-		PlayerId: claims.PlayerId,
+		PlayerId: strings.TrimPrefix(claims.PlayerId, "player:"),
 	})
 	if err != nil {
 		return nil, err
 	}
-
-	profile.Id = "player:" + profile.Id
 
 	accessToken := jwtauth.NewAccessToken(cfg.Jwt.AccessSecretKey, cfg.Jwt.AccessDuration, &jwtauth.Claims{
 		PlayerId: profile.Id,
@@ -115,5 +115,39 @@ func (u *authUseCase) RefreshToken(pctx context.Context, cfg *config.Config, req
 		RoleCode: int(profile.RoleCode),
 	})
 
-	return nil, nil
+	if err := u.authRepo.UpdateOnePlayerCredential(pctx, req.CredentialId, &auth.UpdateRefreshToken{
+		PlayerId:     profile.Id,
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+		Updated_At:   utils.LocalTime(),
+	}); err != nil {
+		return nil, err
+	}
+
+	credential, err := u.authRepo.FindOnePlayerCredential(pctx, req.CredentialId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	loc, _ := time.LoadLocation("Asia/Bangkok")
+
+	return &auth.ProfileIntercepter{
+		PlayerProfile: &player.PlayerProfile{
+			Id:        "player:" + profile.Id,
+			Email:     profile.Email,
+			Username:  profile.Username,
+			CreatedAt: utils.ConvertStringTimeToTime(profile.CreatedAt),
+			UpdatedAt: utils.ConvertStringTimeToTime(profile.UpdatedAt),
+		},
+		Credential: &auth.CredentialRes{
+			Id:           credential.Id.Hex(),
+			PlayerId:     credential.PlayerId,
+			RoldCode:     credential.RoldCode,
+			AccessToken:  credential.AccessToken,
+			ReFreshToken: credential.ReFreshToken,
+			CreatedAt:    credential.CreatedAt.In(loc),
+			UpdatedAt:    credential.CreatedAt.In(loc),
+		},
+	}, nil
 }

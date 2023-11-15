@@ -22,7 +22,7 @@ type (
 		InsertOnePlayerCredential(pctx context.Context, req *auth.Credential) (primitive.ObjectID, error)
 		FindOnePlayerCredential(pctx context.Context, credentialId string) (*auth.Credential, error)
 		FindOnePlayerProfileToRefresh(pctx context.Context, grpcUrl string, req *playerPb.FindOnePlayerProfileToRefreshReq) (*playerPb.PlayerProfile, error)
-		UpdateOnePlayerCredential(pctx context.Context, refreshToken string) error
+		UpdateOnePlayerCredential(pctx context.Context, credentialId string, req *auth.UpdateRefreshToken) error
 	}
 
 	authRepository struct {
@@ -113,12 +113,30 @@ func (r *authRepository) FindOnePlayerProfileToRefresh(pctx context.Context, grp
 	return result, nil
 }
 
-func (r *authRepository) UpdateOnePlayerCredential(pctx context.Context, oldRefreshToken string) error {
+func (r *authRepository) UpdateOnePlayerCredential(pctx context.Context, credentialId string, req *auth.UpdateRefreshToken) error {
 	ctx, cancel := context.WithTimeout(pctx, time.Second*10)
 	defer cancel()
 
 	db := r.authDbConn(ctx)
 	col := db.Collection("auth")
+
+	_, err := col.UpdateOne(
+		ctx,
+		bson.M{"refresh_token": utils.ConvertToObjectId(credentialId)},
+		bson.M{
+			"$set": bson.M{
+				"player_id":     req.PlayerId,
+				"access_token":  req.AccessToken,
+				"refresh_token": req.RefreshToken,
+				"updated_at":    req.Updated_At,
+			},
+		},
+	)
+
+	if err != nil {
+		log.Printf("Error: UpdateOnePlayerCredential  failed: %s", err.Error())
+		return errors.New("error: update one player credential failed")
+	}
 
 	return nil
 }
