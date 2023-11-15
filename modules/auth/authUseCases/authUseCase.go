@@ -55,7 +55,7 @@ func (u *authUseCase) Login(pctx context.Context, cfg *config.Config, req *auth.
 
 	credentialId, err := u.authRepo.InsertOnePlayerCredential(pctx, &auth.Credential{
 		PlayerId:     profile.Id,
-		RoldCode:     int(profile.RoleCode),
+		Rolecode:     int(profile.RoleCode),
 		AccessToken:  accessToken,
 		ReFreshToken: refreshToken,
 		CreatedAt:    utils.LocalTime(),
@@ -81,7 +81,7 @@ func (u *authUseCase) Login(pctx context.Context, cfg *config.Config, req *auth.
 		Credential: &auth.CredentialRes{
 			Id:           credential.Id.Hex(),
 			PlayerId:     credential.PlayerId,
-			RoldCode:     credential.RoldCode,
+			RoleCode:     credential.Rolecode,
 			AccessToken:  credential.AccessToken,
 			ReFreshToken: credential.ReFreshToken,
 			CreatedAt:    credential.CreatedAt.In(loc),
@@ -143,7 +143,7 @@ func (u *authUseCase) RefreshToken(pctx context.Context, cfg *config.Config, req
 		Credential: &auth.CredentialRes{
 			Id:           credential.Id.Hex(),
 			PlayerId:     credential.PlayerId,
-			RoldCode:     credential.RoldCode,
+			RoleCode:     credential.Rolecode,
 			AccessToken:  credential.AccessToken,
 			ReFreshToken: credential.ReFreshToken,
 			CreatedAt:    credential.CreatedAt.In(loc),

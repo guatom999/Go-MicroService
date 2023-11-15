@@ -30,7 +30,7 @@ type (
 	CredentialRes struct {
 		Id           string    `json:"_id" `
 		PlayerId     string    `json:"player_id" `
-		RoldCode     int       `json:"rold_code" `
+		RoleCode     int       `json:"role_code" `
 		AccessToken  string    `json:"access_token" `
 		ReFreshToken string    `json:"refresh_token"`
 		CreatedAt    time.Time `json:"created_at"`

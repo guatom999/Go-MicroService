@@ -10,7 +10,7 @@ type (
 	Credential struct {
 		Id           primitive.ObjectID `bson:"_id,omitempty"`
 		PlayerId     string             `bson:"player_id"`
-		RoldCode     int                `bson:"old_code"`
+		Rolecode     int                `bson:"role_code"`
 		AccessToken  string             `bson:"access_token"`
 		ReFreshToken string             `bson:"refresh_token"`
 		CreatedAt    time.Time          `bson:"created_at"`
