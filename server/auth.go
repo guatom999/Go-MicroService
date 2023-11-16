@@ -26,8 +26,8 @@ func (s *server) authService() {
 		grcpServer.Serve(list)
 	}()
 
-	_ = authHtppHandler
-	_ = authGrpcHandler
+	// _ = authHtppHandler
+	// _ = authGrpcHandler
 
 	auth := s.app.Group("/auth_v1")
 

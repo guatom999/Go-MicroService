@@ -11,7 +11,7 @@ message AccessToKenSearchReq {
 }
 
 message AccessToKenSearchRes {
-    bool inValid = 1;
+    bool isValid = 1;
 }
 
 
