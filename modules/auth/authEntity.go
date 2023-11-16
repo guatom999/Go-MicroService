@@ -12,7 +12,7 @@ type (
 		PlayerId     string             `bson:"player_id"`
 		Rolecode     int                `bson:"role_code"`
 		AccessToken  string             `bson:"access_token"`
-		ReFreshToken string             `bson:"refresh_token"`
+		RefreshToken string             `bson:"refresh_token"`
 		CreatedAt    time.Time          `bson:"created_at"`
 		UpdatedAt    time.Time          `bson:"updated_at"`
 	}

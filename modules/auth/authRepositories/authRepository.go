@@ -122,7 +122,7 @@ func (r *authRepository) UpdateOnePlayerCredential(pctx context.Context, credent
 
 	_, err := col.UpdateOne(
 		ctx,
-		bson.M{"refresh_token": utils.ConvertToObjectId(credentialId)},
+		bson.M{"_id": utils.ConvertToObjectId(credentialId)},
 		bson.M{
 			"$set": bson.M{
 				"player_id":     req.PlayerId,
