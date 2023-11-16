@@ -18,7 +18,7 @@ func (s *server) playerService() {
 	playerGrpcHandler := playerHandlers.NewPlayerGrpcHandler(playerUseCase)
 	playerQueueHandler := playerHandlers.NewPlayerQueueHandler(s.cfg, playerUseCase)
 
-	_ = playerHtppHandler
+	// _ = playerHtppHandler
 	_ = playerQueueHandler
 
 	go func() {
@@ -27,7 +27,7 @@ func (s *server) playerService() {
 
 		playerPb.RegisterPlayerGrpcServiceServer(grpcServer, playerGrpcHandler)
 
-		log.Printf("player Grpc server listening on: %s", s.cfg.Grpc.ItemUrl)
+		log.Printf("player Grpc server listening on: %s", s.cfg.Grpc.PlayerUrl)
 
 		grpcServer.Serve(lis)
 

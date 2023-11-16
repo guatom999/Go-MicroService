@@ -20,8 +20,8 @@ func NewAuthGrpcHandler(authUseCase authUseCases.IAuthUseCaseService) *authGrpcH
 	}
 }
 
-func (g *authGrpcHandler) CredientialSearch(ctx context.Context, req *authPb.AccessToKenSearchReq) (*authPb.AccessToKenSearchRes, error) {
-	return nil, nil
+func (g *authGrpcHandler) AccessToKenSearch(ctx context.Context, req *authPb.AccessToKenSearchReq) (*authPb.AccessToKenSearchRes, error) {
+	return g.authUseCase.AccessTokenSearch(ctx, req.AccessToken)
 }
 
 func (g *authGrpcHandler) RoleCount(ctx context.Context, req *authPb.RoleCountReq) (*authPb.RoleCountRes, error) {

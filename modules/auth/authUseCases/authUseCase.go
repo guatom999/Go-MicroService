@@ -2,12 +2,14 @@ package authUseCases
 
 import (
 	"context"
+	"errors"
 	"log"
 	"strings"
 	"time"
 
 	"github.com/guatom999/Go-MicroService/config"
 	"github.com/guatom999/Go-MicroService/modules/auth"
+	authPb "github.com/guatom999/Go-MicroService/modules/auth/authPb"
 	"github.com/guatom999/Go-MicroService/modules/auth/authRepositories"
 	"github.com/guatom999/Go-MicroService/modules/player"
 	playerPb "github.com/guatom999/Go-MicroService/modules/player/playerPb"
@@ -20,6 +22,7 @@ type (
 		Login(pctx context.Context, cfg *config.Config, req *auth.PlayerLoginReq) (*auth.ProfileIntercepter, error)
 		RefreshToken(pctx context.Context, cfg *config.Config, req *auth.RefreshTokenReq) (*auth.ProfileIntercepter, error)
 		Logout(pctx context.Context, credentialId string) (int64, error)
+		AccessTokenSearch(pctx context.Context, credentialId string) (*authPb.AccessToKenSearchRes, error)
 	}
 
 	authUseCase struct {
@@ -155,4 +158,24 @@ func (u *authUseCase) RefreshToken(pctx context.Context, cfg *config.Config, req
 
 func (u *authUseCase) Logout(pctx context.Context, credentialId string) (int64, error) {
 	return u.authRepo.DeleteOnePlayerCredential(pctx, credentialId)
+}
+
+func (u *authUseCase) AccessTokenSearch(pctx context.Context, accessToken string) (*authPb.AccessToKenSearchRes, error) {
+
+	credential, err := u.authRepo.FindOneAccessToken(pctx, accessToken)
+	if err != nil {
+		return &authPb.AccessToKenSearchRes{
+			IsValid: false,
+		}, err
+	}
+
+	if credential == nil {
+		return &authPb.AccessToKenSearchRes{
+			IsValid: false,
+		}, errors.New("error:access token is invalid")
+	}
+
+	return &authPb.AccessToKenSearchRes{
+		IsValid: true,
+	}, nil
 }
