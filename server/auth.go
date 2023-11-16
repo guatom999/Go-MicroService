@@ -35,4 +35,5 @@ func (s *server) authService() {
 	auth.GET("", s.healthCheckService)
 	auth.POST("/auth/login", authHtppHandler.Login)
 	auth.POST("/auth/refresh-token", authHtppHandler.RefreshToken)
+	auth.POST("/auth/logout", authHtppHandler.Logout)
 }

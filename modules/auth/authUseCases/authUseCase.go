@@ -19,6 +19,7 @@ type (
 	IAuthUseCaseService interface {
 		Login(pctx context.Context, cfg *config.Config, req *auth.PlayerLoginReq) (*auth.ProfileIntercepter, error)
 		RefreshToken(pctx context.Context, cfg *config.Config, req *auth.RefreshTokenReq) (*auth.ProfileIntercepter, error)
+		Logout(pctx context.Context, credentialId string) (int64, error)
 	}
 
 	authUseCase struct {
@@ -150,4 +151,8 @@ func (u *authUseCase) RefreshToken(pctx context.Context, cfg *config.Config, req
 			UpdatedAt:    credential.CreatedAt.In(loc),
 		},
 	}, nil
+}
+
+func (u *authUseCase) Logout(pctx context.Context, credentialId string) (int64, error) {
+	return u.authRepo.DeleteOnePlayerCredential(pctx, credentialId)
 }
