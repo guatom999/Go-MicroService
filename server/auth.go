@@ -32,7 +32,7 @@ func (s *server) authService() {
 	auth := s.app.Group("/auth_v1")
 
 	// Health Check
-	auth.GET("", s.healthCheckService)
+	auth.GET("", s.healthCheckService, s.middleware.JwtAuthorization)
 	auth.POST("/auth/login", authHtppHandler.Login)
 	auth.POST("/auth/refresh-token", authHtppHandler.RefreshToken)
 	auth.POST("/auth/logout", authHtppHandler.Logout)
