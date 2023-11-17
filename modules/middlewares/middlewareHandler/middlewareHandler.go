@@ -13,6 +13,7 @@ import (
 type (
 	IMiddlewareHandlerService interface {
 		JwtAuthorization(next echo.HandlerFunc) echo.HandlerFunc
+		RbacAuthorization(next echo.HandlerFunc, expectedRole []int) echo.HandlerFunc
 	}
 
 	middlewareHandler struct {
@@ -30,6 +31,17 @@ func (h *middlewareHandler) JwtAuthorization(next echo.HandlerFunc) echo.Handler
 		accessToken := strings.TrimPrefix(c.Request().Header.Get("Authorization"), "Bearer ")
 
 		newCtx, err := h.middlewareUseCase.JwtAuthorization(c, h.cfg, accessToken)
+		if err != nil {
+			return response.ErrorResponse(c, http.StatusUnauthorized, err.Error())
+		}
+
+		return next(newCtx)
+	}
+}
+
+func (h *middlewareHandler) RbacAuthorization(next echo.HandlerFunc, expectedRole []int) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		newCtx, err := h.middlewareUseCase.RbacAuthorization(c, h.cfg, expectedRole)
 		if err != nil {
 			return response.ErrorResponse(c, http.StatusUnauthorized, err.Error())
 		}

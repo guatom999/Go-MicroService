@@ -25,5 +25,5 @@ func (g *authGrpcHandler) AccessToKenSearch(ctx context.Context, req *authPb.Acc
 }
 
 func (g *authGrpcHandler) RoleCount(ctx context.Context, req *authPb.RoleCountReq) (*authPb.RoleCountRes, error) {
-	return nil, nil
+	return g.authUseCase.RoleCount(ctx)
 }

@@ -25,14 +25,13 @@ func (s *server) authService() {
 		log.Printf("Auth Grpc server listening on: %s", s.cfg.Grpc.AuthUrl)
 		grcpServer.Serve(list)
 	}()
-
 	// _ = authHtppHandler
 	// _ = authGrpcHandler
 
 	auth := s.app.Group("/auth_v1")
 
 	// Health Check
-	auth.GET("", s.healthCheckService, s.middleware.JwtAuthorization)
+	auth.GET("", s.middleware.JwtAuthorization(s.middleware.RbacAuthorization(s.healthCheckService, []int{0, 1})))
 	auth.POST("/auth/login", authHtppHandler.Login)
 	auth.POST("/auth/refresh-token", authHtppHandler.RefreshToken)
 	auth.POST("/auth/logout", authHtppHandler.Logout)

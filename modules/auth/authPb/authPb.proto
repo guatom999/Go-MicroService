@@ -16,10 +16,10 @@ message AccessToKenSearchRes {
 
 
 message RoleCountReq {
-    int64 count = 1;
 }
 
 message RoleCountRes {
+    int64 count = 1;
 }
 
 

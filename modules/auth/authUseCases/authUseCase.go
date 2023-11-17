@@ -23,6 +23,7 @@ type (
 		RefreshToken(pctx context.Context, cfg *config.Config, req *auth.RefreshTokenReq) (*auth.ProfileIntercepter, error)
 		Logout(pctx context.Context, credentialId string) (int64, error)
 		AccessTokenSearch(pctx context.Context, credentialId string) (*authPb.AccessToKenSearchRes, error)
+		RoleCount(pctx context.Context) (*authPb.RoleCountRes, error)
 	}
 
 	authUseCase struct {
@@ -96,15 +97,11 @@ func (u *authUseCase) Login(pctx context.Context, cfg *config.Config, req *auth.
 
 func (u *authUseCase) RefreshToken(pctx context.Context, cfg *config.Config, req *auth.RefreshTokenReq) (*auth.ProfileIntercepter, error) {
 
-	log.Printf("claims is ===========> %v", req.RefreshToken)
-
 	claims, err := jwtauth.ParseToken(cfg.Jwt.RefreshSecretKey, req.RefreshToken)
 	if err != nil {
 		log.Printf("Error: RefreshToken %s", err.Error())
 		return nil, err
 	}
-
-	log.Printf("claims is ===========> %v", claims)
 
 	profile, err := u.authRepo.FindOnePlayerProfileToRefresh(pctx, cfg.Grpc.PlayerUrl, &playerPb.FindOnePlayerProfileToRefreshReq{
 		PlayerId: strings.TrimPrefix(claims.PlayerId, "player:"),
@@ -181,5 +178,17 @@ func (u *authUseCase) AccessTokenSearch(pctx context.Context, accessToken string
 
 	return &authPb.AccessToKenSearchRes{
 		IsValid: true,
+	}, nil
+}
+
+func (u *authUseCase) RoleCount(pctx context.Context) (*authPb.RoleCountRes, error) {
+
+	result, err := u.authRepo.RoleCount(pctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return &authPb.RoleCountRes{
+		Count: result,
 	}, nil
 }
