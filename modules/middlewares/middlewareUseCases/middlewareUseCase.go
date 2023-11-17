@@ -2,6 +2,7 @@ package middlewareUseCases
 
 import (
 	"errors"
+	"log"
 
 	"github.com/guatom999/Go-MicroService/config"
 	"github.com/guatom999/Go-MicroService/modules/middlewares/middlewareRepositories"
@@ -14,6 +15,7 @@ type (
 	IMiddlewareUseCaseService interface {
 		JwtAuthorization(c echo.Context, cfg *config.Config, accessToken string) (echo.Context, error)
 		RbacAuthorization(c echo.Context, cfg *config.Config, expectedRole []int) (echo.Context, error)
+		PlayerIdParamsValidation(c echo.Context) (echo.Context, error)
 	}
 
 	middlewareUseCase struct {
@@ -65,4 +67,21 @@ func (u *middlewareUseCase) RbacAuthorization(c echo.Context, cfg *config.Config
 	}
 
 	return nil, errors.New("permission denied")
+}
+
+func (u *middlewareUseCase) PlayerIdParamsValidation(c echo.Context) (echo.Context, error) {
+
+	playerIdReq := c.Param("player_id")
+	playerIdToken := c.Get("player_id")
+
+	if playerIdToken == "" || playerIdToken == nil {
+		log.Printf("Error: player_id_token not found ")
+		return nil, errors.New("error: player_id_token is required")
+	}
+
+	if playerIdToken != playerIdReq {
+		log.Printf("Error: playerId and playerIdToken doesn't match ")
+		return nil, errors.New("error: player_id not match")
+	}
+	return c, nil
 }
