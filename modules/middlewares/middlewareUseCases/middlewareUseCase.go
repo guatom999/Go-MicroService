@@ -40,7 +40,7 @@ func (u *middlewareUseCase) JwtAuthorization(c echo.Context, cfg *config.Config,
 		return nil, err
 	}
 
-	c.Set("player_id", claims.PlayerId)
+	c.Set("player_id", "player:"+claims.PlayerId)
 	c.Set("role_code", claims.RoleCode)
 
 	return c, nil
@@ -71,8 +71,12 @@ func (u *middlewareUseCase) RbacAuthorization(c echo.Context, cfg *config.Config
 
 func (u *middlewareUseCase) PlayerIdParamsValidation(c echo.Context) (echo.Context, error) {
 
+	// playerIdReq := strings.TrimPrefix(c.Param("player_id"), "player:")
 	playerIdReq := c.Param("player_id")
 	playerIdToken := c.Get("player_id")
+
+	// log.Printf("playerIdReq is   =================> %s", playerIdReq)
+	// log.Printf("playerIdToken is =================> %s", playerIdToken)
 
 	if playerIdToken == "" || playerIdToken == nil {
 		log.Printf("Error: player_id_token not found ")

@@ -98,7 +98,7 @@ func (r *authRepository) FindOnePlayerCredential(pctx context.Context, credentia
 }
 
 func (r *authRepository) FindOnePlayerProfileToRefresh(pctx context.Context, grpcUrl string, req *playerPb.FindOnePlayerProfileToRefreshReq) (*playerPb.PlayerProfile, error) {
-	ctx, cancel := context.WithTimeout(pctx, time.Second*10)
+	ctx, cancel := context.WithTimeout(pctx, time.Second*30)
 	defer cancel()
 
 	conn, err := grpccon.NewGrpcClient(grpcUrl)
@@ -128,7 +128,7 @@ func (r *authRepository) UpdateOnePlayerCredential(pctx context.Context, credent
 		bson.M{"_id": utils.ConvertToObjectId(credentialId)},
 		bson.M{
 			"$set": bson.M{
-				"player_id":     req.PlayerId,
+				"player_id":     "player:" + req.PlayerId,
 				"access_token":  req.AccessToken,
 				"refresh_token": req.RefreshToken,
 				"updated_at":    req.UpdatedAt,
