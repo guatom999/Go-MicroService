@@ -38,11 +38,11 @@ func (s *server) playerService() {
 	// Health Check
 	playerRoute.GET("", s.healthCheckService)
 
-	playerRoute.GET("/player/account/:player_id", playerHtppHandler.GetPlayerSavingAccount)
+	playerRoute.GET("/player/saving-account/my-account", playerHtppHandler.GetPlayerSavingAccount, s.middleware.JwtAuthorization)
 	playerRoute.GET("/player/:player_id", playerHtppHandler.FindOnePlayerProfile)
 
 	playerRoute.POST("/player/register", playerHtppHandler.CreatePlayer)
 
-	playerRoute.POST("/player/add-moeny", playerHtppHandler.AddPlayerMoney)
+	playerRoute.POST("/player/add-money", playerHtppHandler.AddPlayerMoney, s.middleware.JwtAuthorization)
 
 }

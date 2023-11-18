@@ -40,7 +40,7 @@ func (u *middlewareUseCase) JwtAuthorization(c echo.Context, cfg *config.Config,
 		return nil, err
 	}
 
-	c.Set("player_id", "player:"+claims.PlayerId)
+	c.Set("player_id", claims.PlayerId)
 	c.Set("role_code", claims.RoleCode)
 
 	return c, nil
