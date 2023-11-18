@@ -1,6 +1,7 @@
 package grpccon
 
 import (
+	"context"
 	"errors"
 	"log"
 	"net"
@@ -8,12 +9,14 @@ import (
 	authPb "github.com/guatom999/Go-MicroService/modules/auth/authPb"
 	inventoryPb "github.com/guatom999/Go-MicroService/modules/inventory/inventoryPb"
 	playerPb "github.com/guatom999/Go-MicroService/modules/player/playerPb"
+	"github.com/guatom999/Go-MicroService/pkg/jwtauth"
 
 	itemPb "github.com/guatom999/Go-MicroService/modules/item/itemPb"
 
 	"github.com/guatom999/Go-MicroService/config"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/metadata"
 )
 
 type (
@@ -29,8 +32,39 @@ type (
 	}
 
 	grpcAuth struct {
+		secretKey string
 	}
 )
+
+func (g *grpcAuth) unaryAuthorization(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
+
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		log.Printf("Error: Metadata not found")
+		return nil, errors.New("error:metadata not found")
+	}
+
+	authHeader, ok := md["auth"]
+	if !ok {
+		log.Printf("Error: Metadata not found")
+		return nil, errors.New("error:metadata not found")
+	}
+
+	if len(authHeader) == 0 {
+		log.Printf("Error: Metadata not found")
+		return nil, errors.New("error:metadata not found")
+	}
+
+	clamis, err := jwtauth.ParseToken(g.secretKey, string(authHeader[0]))
+	if err != nil {
+		log.Printf("Error: ParseToken failed")
+		return nil, errors.New("error: token is invalid")
+	}
+
+	log.Printf("claims: %v", clamis)
+
+	return handler(ctx, req)
+}
 
 func (g *grcpClientFactory) Auth() authPb.AuthGrpcServiceClient {
 	return authPb.NewAuthGrpcServiceClient(g.client)
@@ -66,6 +100,12 @@ func NewGrpcClient(host string) (GrcpClientFactoryHandler, error) {
 
 func NewGrpcServer(cfg *config.Jwt, host string) (*grpc.Server, net.Listener) {
 	options := make([]grpc.ServerOption, 0)
+
+	grpcAuth := &grpcAuth{
+		secretKey: cfg.ApiSecretKey,
+	}
+
+	options = append(options, grpc.UnaryInterceptor(grpcAuth.unaryAuthorization))
 
 	grpcServer := grpc.NewServer(options...)
 

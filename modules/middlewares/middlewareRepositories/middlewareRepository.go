@@ -8,6 +8,7 @@ import (
 
 	authPb "github.com/guatom999/Go-MicroService/modules/auth/authPb"
 	"github.com/guatom999/Go-MicroService/pkg/grpccon"
+	"github.com/guatom999/Go-MicroService/pkg/jwtauth"
 )
 
 type (
@@ -28,6 +29,8 @@ func (r *middlewareRepository) AccessTokenSearch(pctx context.Context, grpcUrl, 
 
 	ctx, cancel := context.WithTimeout(pctx, time.Second*10)
 	defer cancel()
+
+	jwtauth.SetApiKeyInContext(&ctx)
 
 	conn, err := grpccon.NewGrpcClient(grpcUrl)
 	if err != nil {
@@ -63,6 +66,8 @@ func (r *middlewareRepository) RolesCount(pctx context.Context, grpcUrl string) 
 
 	ctx, cancel := context.WithTimeout(pctx, time.Second*10)
 	defer cancel()
+
+	jwtauth.SetApiKeyInContext(&ctx)
 
 	conn, err := grpccon.NewGrpcClient(grpcUrl)
 	if err != nil {

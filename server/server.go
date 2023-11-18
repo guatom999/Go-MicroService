@@ -13,6 +13,7 @@ import (
 	"github.com/guatom999/Go-MicroService/modules/middlewares/middlewareHandler"
 	"github.com/guatom999/Go-MicroService/modules/middlewares/middlewareRepositories"
 	"github.com/guatom999/Go-MicroService/modules/middlewares/middlewareUseCases"
+	"github.com/guatom999/Go-MicroService/pkg/jwtauth"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -66,6 +67,8 @@ func Start(pctx context.Context, cfg *config.Config, db *mongo.Client) {
 		cfg:        cfg,
 		middleware: NewMiddleware(cfg),
 	}
+
+	jwtauth.SetApiKey(cfg.Jwt.ApiSecretKey)
 
 	// Request Timeout
 	s.app.Use(middleware.TimeoutWithConfig(middleware.TimeoutConfig{

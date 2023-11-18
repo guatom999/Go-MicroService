@@ -9,6 +9,7 @@ import (
 	"github.com/guatom999/Go-MicroService/modules/auth"
 	playerPb "github.com/guatom999/Go-MicroService/modules/player/playerPb"
 	"github.com/guatom999/Go-MicroService/pkg/grpccon"
+	"github.com/guatom999/Go-MicroService/pkg/jwtauth"
 	"github.com/guatom999/Go-MicroService/pkg/utils"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -45,6 +46,8 @@ func (r *authRepository) CredentialSearch(pctx context.Context, grpcUrl string, 
 
 	ctx, cancel := context.WithTimeout(pctx, time.Second*30)
 	defer cancel()
+
+	jwtauth.SetApiKeyInContext(&ctx)
 
 	conn, err := grpccon.NewGrpcClient(grpcUrl)
 	if err != nil {
@@ -100,6 +103,8 @@ func (r *authRepository) FindOnePlayerCredential(pctx context.Context, credentia
 func (r *authRepository) FindOnePlayerProfileToRefresh(pctx context.Context, grpcUrl string, req *playerPb.FindOnePlayerProfileToRefreshReq) (*playerPb.PlayerProfile, error) {
 	ctx, cancel := context.WithTimeout(pctx, time.Second*30)
 	defer cancel()
+
+	jwtauth.SetApiKeyInContext(&ctx)
 
 	conn, err := grpccon.NewGrpcClient(grpcUrl)
 	if err != nil {
