@@ -110,6 +110,8 @@ func (u *authUseCase) RefreshToken(pctx context.Context, cfg *config.Config, req
 		return nil, err
 	}
 
+	profile.Id = "player:" + profile.Id
+
 	accessToken := jwtauth.NewAccessToken(cfg.Jwt.AccessSecretKey, cfg.Jwt.AccessDuration, &jwtauth.Claims{
 		PlayerId: profile.Id,
 		RoleCode: int(profile.RoleCode),
