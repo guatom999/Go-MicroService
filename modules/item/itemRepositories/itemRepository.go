@@ -43,9 +43,10 @@ func (r *itemRepository) IsUniqueItem(pctx context.Context, title string) bool {
 
 	if err := col.FindOne(ctx, bson.M{"title": title}).Decode(result); err != nil {
 		log.Printf("Error: IsUnique Item %s", err.Error())
+		return true
 	}
 
-	return true
+	return false
 }
 
 func (r *itemRepository) InsertOneItem(pctx context.Context, req *item.Item) (primitive.ObjectID, error) {

@@ -4,10 +4,10 @@ import "github.com/guatom999/Go-MicroService/modules/models"
 
 type (
 	CreateItemReq struct {
-		Title    string `json:"title" validate:"required,max=64"`
-		Price    int64  `json:"price" validate:"required"`
-		Damage   int    `json:"damage" validate:"required"`
-		ImageUrl string `json:"image_url" validate:"required,max=64"`
+		Title    string  `json:"title" validate:"required,max=64"`
+		Price    float64 `json:"price" validate:"required"`
+		Damage   int     `json:"damage" validate:"required"`
+		ImageUrl string  `json:"image_url" validate:"required,max=64"`
 	}
 
 	ItemShowCase struct {
