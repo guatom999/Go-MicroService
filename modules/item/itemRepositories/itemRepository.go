@@ -22,6 +22,7 @@ type (
 		FindManyItems(pctx context.Context, filter primitive.D, opts []*options.FindOptions) ([]*item.ItemShowCase, error)
 		CountItems(pctx context.Context, filter primitive.D) (int64, error)
 		UpdateOneItem(pctx context.Context, itemId string, req primitive.M) error
+		EnableOrDisableItem(pctx context.Context, itemId string, isActive bool) error
 	}
 
 	itemRepository struct {
@@ -156,6 +157,25 @@ func (r *itemRepository) UpdateOneItem(pctx context.Context, itemId string, req 
 		return errors.New("error: update item failed")
 	}
 	log.Printf("success update item: %v", result)
+
+	return nil
+}
+
+func (r *itemRepository) EnableOrDisableItem(pctx context.Context, itemId string, isActive bool) error {
+
+	ctx, cancel := context.WithTimeout(pctx, time.Second*15)
+	defer cancel()
+
+	db := r.itemDbConn(ctx)
+	col := db.Collection("items")
+
+	result, err := col.UpdateOne(ctx, bson.M{"_id": utils.ConvertToObjectId(itemId)}, bson.M{"$set": bson.M{"usage_status": isActive}})
+	if err != nil {
+		log.Printf("Error:EnableOrDisableItem :%s", err.Error())
+		return errors.New("error: enable or disable item failed")
+	}
+
+	log.Printf("change status item result is :%v", result.ModifiedCount)
 
 	return nil
 }
