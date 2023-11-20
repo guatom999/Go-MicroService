@@ -38,4 +38,6 @@ func (s *server) itemService() {
 	item.GET("/item/:item_id", itemHtppHandler.FindOneItem)
 
 	item.GET("/item", itemHtppHandler.FindManyItem)
+
+	item.PATCH("item/:item_id", s.middleware.JwtAuthorization(s.middleware.RbacAuthorization(itemHtppHandler.EditItem, []int{1, 0})))
 }
