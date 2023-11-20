@@ -6,14 +6,19 @@ import (
 	"log"
 	"time"
 
+	"github.com/guatom999/Go-MicroService/modules/inventory"
 	itemPb "github.com/guatom999/Go-MicroService/modules/item/itemPb"
 	"github.com/guatom999/Go-MicroService/pkg/grpccon"
 	"github.com/guatom999/Go-MicroService/pkg/jwtauth"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type (
 	IInventoryRepositoryService interface {
+		FindItemsInIds(pctx context.Context, grpcUrl string, req *itemPb.FindItemsInIdsReq) (*itemPb.FindItemsInIdsRes, error)
+		FindPlayerItems(pctx context.Context, playerId string) ([]*inventory.Inventory, error)
 	}
 
 	inventoryRepository struct {
@@ -58,4 +63,50 @@ func (r *inventoryRepository) FindItemsInIds(pctx context.Context, grpcUrl strin
 	}
 
 	return result, nil
+}
+
+func (r *inventoryRepository) FindPlayerItems(pctx context.Context, playerId string) ([]*inventory.Inventory, error) {
+
+	ctx, cancel := context.WithTimeout(pctx, time.Second*10)
+	defer cancel()
+
+	db := r.inventoryDbConn(ctx)
+	col := db.Collection("players_inventory")
+
+	cursors, err := col.Find(ctx, bson.M{"player_id": playerId})
+	if err != nil {
+		log.Printf("Error: FindPlayerItems failed: %s", err.Error())
+		return nil, errors.New("error: player item not found")
+	}
+
+	results := make([]*inventory.Inventory, 0)
+
+	for cursors.Next(ctx) {
+		result := new(inventory.Inventory)
+		if err := cursors.Decode(result); err != nil {
+			log.Printf("Error: FindPlayerItems failed: %s", err.Error())
+			return nil, errors.New("error: player item not found")
+		}
+
+		results = append(results, result)
+	}
+
+	return results, nil
+}
+
+func (r *inventoryRepository) CountItems(pctx context.Context, filter primitive.D) (int64, error) {
+
+	ctx, cancel := context.WithTimeout(pctx, time.Second*15)
+	defer cancel()
+
+	db := r.itemDbConn(ctx)
+	col := db.Collection("items")
+
+	count, err := col.CountDocuments(ctx, filter)
+	if err != nil {
+		log.Printf("Error: CountItems failed:%s", err.Error())
+		return -1, errors.New("error: count item failed")
+	}
+
+	return count, nil
 }
