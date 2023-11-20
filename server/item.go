@@ -36,4 +36,6 @@ func (s *server) itemService() {
 	item.POST("/item", s.middleware.JwtAuthorization(s.middleware.RbacAuthorization(itemHtppHandler.CreateItem, []int{1, 0})))
 
 	item.GET("/item/:item_id", itemHtppHandler.FindOneItem)
+
+	item.GET("/item", itemHtppHandler.FindManyItem)
 }

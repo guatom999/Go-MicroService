@@ -17,17 +17,18 @@ type (
 	IItemHttpHandlerService interface {
 		CreateItem(c echo.Context) error
 		FindOneItem(c echo.Context) error
+		FindManyItem(c echo.Context) error
 	}
 
 	itemHttpHandler struct {
-		config      *config.Config
+		cfg         *config.Config
 		itemUseCase itemUseCases.IItemUseCaseService
 	}
 )
 
 func NewItemHttpHandler(config *config.Config, itemUseCase itemUseCases.IItemUseCaseService) IItemHttpHandlerService {
 	return &itemHttpHandler{
-		config:      config,
+		cfg:         config,
 		itemUseCase: itemUseCase,
 	}
 }
@@ -62,4 +63,24 @@ func (h *itemHttpHandler) FindOneItem(c echo.Context) error {
 	}
 
 	return response.SuccessResponse(c, http.StatusCreated, item)
+}
+
+func (h *itemHttpHandler) FindManyItem(c echo.Context) error {
+
+	ctx := context.Background()
+
+	wrapper := request.ContextWrapper(c)
+
+	req := new(item.ItemSearchReq)
+
+	if err := wrapper.Bind(req); err != nil {
+		return response.ErrorResponse(c, http.StatusBadRequest, err.Error())
+	}
+
+	res, err := h.itemUseCase.FindManyItems(ctx, h.cfg.Paginate.ItemNextPageBasedUrl, req)
+	if err != nil {
+		return response.ErrorResponse(c, http.StatusBadRequest, err.Error())
+	}
+
+	return response.SuccessResponse(c, http.StatusCreated, res)
 }
