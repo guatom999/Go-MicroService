@@ -65,36 +65,44 @@ func (u *inventoryUsecase) FindPlayerItems(pctx context.Context, cfg *config.Con
 		}, nil
 	}
 
+	itemData, err := u.inventoryRepo.FindItemsInIds(pctx, cfg.Grpc.ItemUrl, &itemPb.FindItemsInIdsReq{
+		Ids: func() []string {
+			itemIds := make([]string, 0)
+			for _, v := range inventoryData {
+				itemIds = append(itemIds, string(v.ItemId))
+			}
+			return itemIds
+		}(),
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	itemMaps := make(map[string]*item.ItemShowCase)
+	for _, v := range itemData.Items {
+		itemMaps[v.Id] = &item.ItemShowCase{
+			ItemId:   v.Id,
+			Title:    v.Title,
+			Price:    v.Price,
+			Damage:   int(v.Damage),
+			ImageUrl: v.ImageUrl,
+		}
+	}
+
 	results := make([]*inventory.ItemInInventory, 0)
 	for _, data := range inventoryData {
 		results = append(results, &inventory.ItemInInventory{
 			InventoryId: data.Id.Hex(),
 			PlayerId:    data.PlayerId,
 			ItemShowCase: &item.ItemShowCase{
-				ItemId: data.ItemId,
+				ItemId:   data.ItemId,
+				Title:    itemMaps[data.ItemId].Title,
+				Price:    itemMaps[data.ItemId].Price,
+				Damage:   itemMaps[data.ItemId].Damage,
+				ImageUrl: itemMaps[data.ItemId].ImageUrl,
 			},
 		})
-	}
-
-	itemData, err := u.inventoryRepo.FindItemsInIds(pctx, cfg.Grpc.ItemUrl, &itemPb.FindItemsInIdsReq{
-		Ids: func() []string {
-			itemIds := make([]string, 0)
-			for _, v := range inventoryData {
-				itemIds = append(itemIds, v.)
-			}
-			return itemIds
-		}(),
-	})
-
-	itemMaps := make(map[string]*item.ItemShowCase)
-	for _, v := range itemData.Items {
-		itemMaps[v.Id] = &item.ItemShowCase{
-			ItemId: v.Id,
-			Title: v.Title,
-			Price: v.Price,
-			Damage: int(v.Damage),
-			ImageUrl: v.ImageUrl,
-		}
 	}
 
 	total, err := u.inventoryRepo.CountPlayerItems(pctx, playerId)
