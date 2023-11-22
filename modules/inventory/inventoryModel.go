@@ -2,6 +2,7 @@ package inventory
 
 import (
 	"github.com/guatom999/Go-MicroService/modules/item"
+	"github.com/guatom999/Go-MicroService/modules/models"
 )
 
 type (
@@ -14,5 +15,9 @@ type (
 		InventoryId string `json:"inventory_id"`
 		PlayerId    string `json:"player_id"`
 		*item.ItemShowCase
+	}
+
+	InventorySearchReq struct {
+		models.PaginateReq
 	}
 )
