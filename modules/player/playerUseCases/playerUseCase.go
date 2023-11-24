@@ -32,6 +32,14 @@ func NewPlayerUseCase(playerRepo playerRepositories.IPlayerRepositoryService) IP
 	return &playerUseCase{playerRepo}
 }
 
+func (u *playerUseCase) GetOffset(pctx context.Context) (int64, error) {
+	return u.playerRepo.GetOffset(pctx)
+}
+
+func (u *playerUseCase) UpsertOffset(pctx context.Context, offset int64) error {
+	return u.playerRepo.UpsertOffset(pctx, offset)
+}
+
 func (u *playerUseCase) CreatePlayer(pctx context.Context, req *player.CreatePlayerReq) (*player.PlayerProfile, error) {
 
 	if !u.playerRepo.IsUniquePlayer(pctx, req.Email, req.Username) {

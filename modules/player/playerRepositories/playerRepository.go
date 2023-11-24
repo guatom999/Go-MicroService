@@ -6,6 +6,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/guatom999/Go-MicroService/modules/models"
 	"github.com/guatom999/Go-MicroService/modules/player"
 	"github.com/guatom999/Go-MicroService/pkg/utils"
 	"go.mongodb.org/mongo-driver/bson"
@@ -23,6 +24,8 @@ type (
 		GetPlayerSavingAccount(pctx context.Context, playerId string) (*player.PlayerSavingAccount, error)
 		FindOnePlayerCredential(pctx context.Context, email string) (*player.Player, error)
 		FindOnePlayerProfileToRefresh(pctx context.Context, playerId string) (*player.Player, error)
+		GetOffset(pctx context.Context) (int64, error)
+		UpsertOffset(pctx context.Context, offset int64) error
 	}
 
 	playerRepository struct {
@@ -36,6 +39,41 @@ func NewPlayerRepository(db *mongo.Client) IPlayerRepositoryService {
 
 func (r *playerRepository) playerDbConn(pctx context.Context) *mongo.Database {
 	return r.db.Database("player_db")
+}
+
+func (r *playerRepository) GetOffset(pctx context.Context) (int64, error) {
+
+	ctx, cancel := context.WithTimeout(pctx, time.Second*10)
+	defer cancel()
+
+	db := r.playerDbConn(ctx)
+	col := db.Collection("player_transactions_queue")
+
+	result := new(models.KafkaOffset)
+	if err := col.FindOne(ctx, bson.M{}).Decode(result); err != nil {
+		log.Printf("Error: GetOffset  failed: %s", err.Error())
+		return -1, errors.New("error: getoffset failed")
+	}
+
+	return result.Offset, nil
+}
+
+func (r *playerRepository) UpsertOffset(pctx context.Context, offset int64) error {
+
+	ctx, cancel := context.WithTimeout(pctx, time.Second*10)
+	defer cancel()
+
+	db := r.playerDbConn(ctx)
+	col := db.Collection("player_transactions_queue")
+
+	result, err := col.UpdateOne(ctx, bson.M{}, bson.M{"$set": bson.M{"offset": offset}}, options.Update().SetUpsert(true))
+	if err != nil {
+		log.Printf("Error: UpdateOne UpsertOffset  failed: %s", err.Error())
+		return errors.New("error: uppdate offset failed")
+	}
+	log.Printf("Info: UpsertOffset result: %v", result)
+
+	return nil
 }
 
 func (r *playerRepository) IsUniquePlayer(pctx context.Context, email string, username string) bool {
