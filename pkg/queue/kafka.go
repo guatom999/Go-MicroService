@@ -94,7 +94,7 @@ func ConnectConsumer(brokerUrls []string, apiKey, secret string) (sarama.Consume
 	return consumer, nil
 }
 
-func RepostMessage(obj any, value []byte) error {
+func DecodeMessage(obj any, value []byte) error {
 	if err := json.Unmarshal(value, &obj); err != nil {
 		log.Printf("Error: Failed to decode to message: %s", err.Error())
 		return errors.New("error: failed to decode to message:")
