@@ -5,10 +5,13 @@ import (
 	"errors"
 	"log"
 
+	"github.com/IBM/sarama"
+	"github.com/guatom999/Go-MicroService/config"
 	"github.com/guatom999/Go-MicroService/modules/item"
 	itemPb "github.com/guatom999/Go-MicroService/modules/item/itemPb"
 	"github.com/guatom999/Go-MicroService/modules/payment"
 	"github.com/guatom999/Go-MicroService/modules/payment/paymentRepositories"
+	"github.com/guatom999/Go-MicroService/pkg/queue"
 )
 
 type (
@@ -16,6 +19,8 @@ type (
 		FindItemsInIds(pctx context.Context, grpcUrl string, req []*payment.ItemServiceReqDatum) error
 		GetOffset(pctx context.Context) (int64, error)
 		UpsertOffset(pctx context.Context, offset int64) error
+		BuyItem(pctx context.Context, cfg *config.Config, playerId string, req *payment.ItemServiceReq) (*payment.PaymentTransferRes, error)
+		SellItem(pctx context.Context, cfg *config.Config, playerId string, req *payment.ItemServiceReq) (*payment.PaymentTransferRes, error)
 	}
 
 	paymentUseCase struct {
@@ -78,4 +83,79 @@ func (u *paymentUseCase) GetOffset(pctx context.Context) (int64, error) {
 
 func (u *paymentUseCase) UpsertOffset(pctx context.Context, offset int64) error {
 	return u.paymentRepo.UpsertOffset(pctx, offset)
+}
+
+func (u *paymentUseCase) PaymentConsumer(pctx context.Context, cfg *config.Config) (sarama.PartitionConsumer, error) {
+
+	worker, err := queue.ConnectConsumer([]string{cfg.Kafka.Url}, cfg.Kafka.ApiKey, cfg.Kafka.Secret)
+	if err != nil {
+		return nil, err
+	}
+
+	offset, err := u.paymentRepo.GetOffset(pctx)
+	if err != nil {
+		return nil, err
+	}
+
+	consumer, err := worker.ConsumePartition("payment", 0, offset)
+	if err != nil {
+		log.Println("Trying to set offset as 0")
+		consumer, err = worker.ConsumePartition("payment", 0, 0)
+		if err != nil {
+			log.Println("Error: PaymentConsumer failed: ", err.Error())
+			return nil, err
+		}
+	}
+
+	return consumer, nil
+}
+
+func (u *paymentUseCase) BuyItemConsumer(pctx context.Context, cfg *config.Config, resCh chan<- *payment.PaymentTransferRes) {
+	consumer, err := u.PaymentConsumer(pctx, cfg)
+	if err != nil {
+		resCh <- nil
+		return
+	}
+
+	log.Println("Start BuyItemConsumer")
+
+	select {
+	case err := <-consumer.Errors():
+		log.Println("Error: BuyItemConsumer failed", err.Error())
+		resCh <- nil
+		return
+	case msg := <-consumer.Messages():
+		if string(msg.Key) == "buy" {
+			u.UpsertOffset(pctx, msg.Offset+1)
+
+			req := new(payment.PaymentTransferRes)
+
+			if err := queue.DecodeMessage(req, msg.Value); err != nil {
+				resCh <- nil
+				return
+			}
+
+			resCh <- req
+			log.Printf("BuyItemConsumer | topic(%s) | offset(%d) | Message(%s)\n", msg.Topic, msg.Offset, string(msg.Value))
+		}
+		// log.Println("Error: BuyItemConsumer failed", err.Error())
+	}
+}
+
+func (u *paymentUseCase) BuyItem(pctx context.Context, cfg *config.Config, playerId string, req *payment.ItemServiceReq) (*payment.PaymentTransferRes, error) {
+
+	if err := u.FindItemsInIds(pctx, cfg.Grpc.PaymentUrl, req.Items); err != nil {
+		return nil, err
+	}
+
+	return nil, nil
+}
+
+func (u *paymentUseCase) SellItem(pctx context.Context, cfg *config.Config, playerId string, req *payment.ItemServiceReq) (*payment.PaymentTransferRes, error) {
+
+	if err := u.FindItemsInIds(pctx, cfg.Grpc.PaymentUrl, req.Items); err != nil {
+		return nil, err
+	}
+
+	return nil, nil
 }
