@@ -110,22 +110,22 @@ func (u *paymentUseCase) PaymentConsumer(pctx context.Context, cfg *config.Confi
 	return consumer, nil
 }
 
-func (u *paymentUseCase) BuyItemConsumer(pctx context.Context, cfg *config.Config, resCh chan<- *payment.PaymentTransferRes) {
+func (u *paymentUseCase) BuyOrSellConsumer(pctx context.Context, key string, cfg *config.Config, resCh chan<- *payment.PaymentTransferRes) {
 	consumer, err := u.PaymentConsumer(pctx, cfg)
 	if err != nil {
 		resCh <- nil
 		return
 	}
 
-	log.Println("Start BuyItemConsumer")
+	log.Println("Start BuyOrSellConsumer")
 
 	select {
 	case err := <-consumer.Errors():
-		log.Println("Error: BuyItemConsumer failed", err.Error())
+		log.Println("Error: BuyOrSellConsumer failed", err.Error())
 		resCh <- nil
 		return
 	case msg := <-consumer.Messages():
-		if string(msg.Key) == "buy" {
+		if string(msg.Key) == key {
 			u.UpsertOffset(pctx, msg.Offset+1)
 
 			req := new(payment.PaymentTransferRes)
@@ -136,7 +136,7 @@ func (u *paymentUseCase) BuyItemConsumer(pctx context.Context, cfg *config.Confi
 			}
 
 			resCh <- req
-			log.Printf("BuyItemConsumer | topic(%s) | offset(%d) | Message(%s)\n", msg.Topic, msg.Offset, string(msg.Value))
+			log.Printf("BuyOrSellConsumer | topic(%s) | offset(%d) | Message(%s)\n", msg.Topic, msg.Offset, string(msg.Value))
 		}
 		// log.Println("Error: BuyItemConsumer failed", err.Error())
 	}

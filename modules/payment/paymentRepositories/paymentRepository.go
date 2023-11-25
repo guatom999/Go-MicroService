@@ -6,8 +6,10 @@ import (
 	"log"
 	"time"
 
+	"github.com/guatom999/Go-MicroService/config"
 	itemPb "github.com/guatom999/Go-MicroService/modules/item/itemPb"
 	"github.com/guatom999/Go-MicroService/modules/models"
+	"github.com/guatom999/Go-MicroService/modules/player"
 	"github.com/guatom999/Go-MicroService/pkg/grpccon"
 	"github.com/guatom999/Go-MicroService/pkg/jwtauth"
 	"go.mongodb.org/mongo-driver/bson"
@@ -20,6 +22,8 @@ type (
 		FindItemsInIds(pctx context.Context, grpcUrl string, req *itemPb.FindItemsInIdsReq) (*itemPb.FindItemsInIdsRes, error)
 		GetOffset(pctx context.Context) (int64, error)
 		UpsertOffset(pctx context.Context, offset int64) error
+		DockedPlayerMoney(pctx context.Context, cfg *config.Config, req *player.CreatePlayerTransactionReq) error
+		RollBackTransaction(pctx context.Context, cfg *config.Config, req *player.CreatePlayerTransactionReq) error
 	}
 
 	paymentRepository struct {
