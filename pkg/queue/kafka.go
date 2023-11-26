@@ -82,8 +82,8 @@ func ConnectConsumer(brokerUrls []string, apiKey, secret string) (sarama.Consume
 		}
 	}
 
-	config.Producer.Return.Successes = true
-	config.Producer.Retry.Max = 3
+	config.Consumer.Return.Errors = true
+	config.Consumer.Fetch.Max = 3
 
 	consumer, err := sarama.NewConsumer(brokerUrls, config)
 	if err != nil {

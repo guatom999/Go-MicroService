@@ -34,7 +34,7 @@ func (r *paymentRepository) DockedPlayerMoney(pctx context.Context, cfg *config.
 	return nil
 }
 
-func (r *paymentRepository) RollBackTransaction(pctx context.Context, cfg *config.Config, req *player.CreatePlayerTransactionReq) error {
+func (r *paymentRepository) RollBackTransaction(pctx context.Context, cfg *config.Config, req *player.RollBackPlayerTransactionReq) error {
 	reqInBytes, err := json.Marshal(req)
 	if err != nil {
 		log.Printf("Error: RollBackTransaction failed : %s", err.Error())
@@ -46,7 +46,7 @@ func (r *paymentRepository) RollBackTransaction(pctx context.Context, cfg *confi
 		cfg.Kafka.ApiKey,
 		cfg.Kafka.Secret,
 		"player",
-		"rtranscation",
+		"rtransaction",
 		reqInBytes,
 	); err != nil {
 		log.Printf("Error: RollBackTransaction failed : %s", err.Error())

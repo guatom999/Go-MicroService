@@ -12,11 +12,13 @@ func (s *server) paymentService() {
 	paymentHtppHandler := paymentHandlers.NewPaymentHttpHandler(s.cfg, paymentUseCase)
 	paymentGrpcHandler := paymentHandlers.NewPaymentGrpcHandler(paymentUseCase)
 
-	_ = paymentHtppHandler
 	_ = paymentGrpcHandler
 
 	payment := s.app.Group("/payment_v1")
 
 	// Health Check
 	payment.GET("", s.healthCheckService)
+
+	payment.POST("/payment/buy", s.middleware.JwtAuthorization(paymentHtppHandler.BuyItem))
+	payment.POST("/paymet/sell", s.middleware.JwtAuthorization(paymentHtppHandler.BuyItem))
 }

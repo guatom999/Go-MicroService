@@ -4,8 +4,11 @@ import (
 	"context"
 	"errors"
 	"log"
+	"math"
 	"time"
 
+	"github.com/guatom999/Go-MicroService/config"
+	"github.com/guatom999/Go-MicroService/modules/payment"
 	"github.com/guatom999/Go-MicroService/modules/player"
 	playerPb "github.com/guatom999/Go-MicroService/modules/player/playerPb"
 	"github.com/guatom999/Go-MicroService/modules/player/playerRepositories"
@@ -21,6 +24,10 @@ type (
 		GetPlayerSavingAccount(pctx context.Context, playerId string) (*player.PlayerSavingAccount, error)
 		FindOnePlayerCredential(pctx context.Context, password string, email string) (*playerPb.PlayerProfile, error)
 		FindOnePlayerProfileToRefresh(pctx context.Context, playerId string) (*playerPb.PlayerProfile, error)
+		GetOffset(pctx context.Context) (int64, error)
+		UpsertOffset(pctx context.Context, offset int64) error
+		DockedPlayerMoneyRes(pctx context.Context, cfg *config.Config, req *player.CreatePlayerTransactionReq)
+		RollbackPlayerTransaction(pctx context.Context, req *player.RollBackPlayerTransactionReq)
 	}
 
 	playerUseCase struct {
@@ -93,7 +100,7 @@ func (u *playerUseCase) FindOnePlayerProfile(pctx context.Context, playerId stri
 
 func (u *playerUseCase) AddPlayerMoney(pctx context.Context, req *player.CreatePlayerTransactionReq) (*player.PlayerSavingAccount, error) {
 
-	if err := u.playerRepo.InsertOnePlayerTransaction(pctx, &player.PlayerTransaction{
+	if _, err := u.playerRepo.InsertOnePlayerTransaction(pctx, &player.PlayerTransaction{
 		PlayerId:  req.PlayerId,
 		Amount:    req.Amount,
 		CreatedAt: utils.LocalTime(),
@@ -168,4 +175,65 @@ func (u *playerUseCase) FindOnePlayerProfileToRefresh(pctx context.Context, play
 		CreatedAt: result.CreatedAt.In(loc).String(),
 		UpdatedAt: result.UpdatedAt.In(loc).String(),
 	}, nil
+}
+
+func (u *playerUseCase) DockedPlayerMoneyRes(pctx context.Context, cfg *config.Config, req *player.CreatePlayerTransactionReq) {
+	//Get saving account
+	savingAccount, err := u.GetPlayerSavingAccount(pctx, req.PlayerId)
+	if err != nil {
+		u.playerRepo.DockedPlayerMoneyRes(pctx, cfg, &payment.PaymentTransferRes{
+			InventoryId:   "",
+			TransactionId: "",
+			PlayerId:      req.PlayerId,
+			ItemId:        "",
+			Amount:        req.Amount,
+			Error:         err.Error(),
+		})
+		return
+	}
+
+	if savingAccount.Balance < math.Abs(req.Amount) {
+		log.Printf("Error: DockedPlayerMoneyRes failed money is : %f", savingAccount.Balance)
+		u.playerRepo.DockedPlayerMoneyRes(pctx, cfg, &payment.PaymentTransferRes{
+			InventoryId:   "",
+			TransactionId: "",
+			PlayerId:      req.PlayerId,
+			ItemId:        "",
+			Amount:        req.Amount,
+			Error:         "error: not enough money",
+		})
+		return
+	}
+
+	//Insert Transaction
+	transactionId, err := u.playerRepo.InsertOnePlayerTransaction(pctx, &player.PlayerTransaction{
+		PlayerId:  req.PlayerId,
+		Amount:    req.Amount,
+		CreatedAt: utils.LocalTime(),
+	})
+	if err != nil {
+		u.playerRepo.DockedPlayerMoneyRes(pctx, cfg, &payment.PaymentTransferRes{
+			InventoryId:   "",
+			TransactionId: "",
+			PlayerId:      req.PlayerId,
+			ItemId:        "",
+			Amount:        req.Amount,
+			Error:         err.Error(),
+		})
+		return
+	}
+
+	u.playerRepo.DockedPlayerMoneyRes(pctx, cfg, &payment.PaymentTransferRes{
+		InventoryId:   "",
+		TransactionId: transactionId.Hex(),
+		PlayerId:      req.PlayerId,
+		ItemId:        "",
+		Amount:        req.Amount,
+		Error:         "",
+	})
+	return
+}
+
+func (u *playerUseCase) RollbackPlayerTransaction(pctx context.Context, req *player.RollBackPlayerTransactionReq) {
+	u.playerRepo.DeleteOnePlayerTransaction(pctx, req.TransactionId)
 }

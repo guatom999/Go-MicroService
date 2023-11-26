@@ -2,12 +2,16 @@ package playerRepositories
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"log"
 	"time"
 
+	"github.com/guatom999/Go-MicroService/config"
 	"github.com/guatom999/Go-MicroService/modules/models"
+	"github.com/guatom999/Go-MicroService/modules/payment"
 	"github.com/guatom999/Go-MicroService/modules/player"
+	"github.com/guatom999/Go-MicroService/pkg/queue"
 	"github.com/guatom999/Go-MicroService/pkg/utils"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -20,12 +24,14 @@ type (
 		IsUniquePlayer(pctx context.Context, email string, username string) bool
 		InsertOnePlayer(pctx context.Context, req *player.Player) (primitive.ObjectID, error)
 		FindOnePlayerProfile(pctx context.Context, playerId string) (*player.PlayerProfileBson, error)
-		InsertOnePlayerTransaction(pctx context.Context, req *player.PlayerTransaction) error
+		InsertOnePlayerTransaction(pctx context.Context, req *player.PlayerTransaction) (primitive.ObjectID, error)
 		GetPlayerSavingAccount(pctx context.Context, playerId string) (*player.PlayerSavingAccount, error)
 		FindOnePlayerCredential(pctx context.Context, email string) (*player.Player, error)
 		FindOnePlayerProfileToRefresh(pctx context.Context, playerId string) (*player.Player, error)
 		GetOffset(pctx context.Context) (int64, error)
 		UpsertOffset(pctx context.Context, offset int64) error
+		DockedPlayerMoneyRes(pctx context.Context, cfg *config.Config, req *payment.PaymentTransferRes) error
+		DeleteOnePlayerTransaction(pctx context.Context, transantionId string) error
 	}
 
 	playerRepository struct {
@@ -145,7 +151,7 @@ func (r *playerRepository) FindOnePlayerProfile(pctx context.Context, playerId s
 
 }
 
-func (r *playerRepository) InsertOnePlayerTransaction(pctx context.Context, req *player.PlayerTransaction) error {
+func (r *playerRepository) InsertOnePlayerTransaction(pctx context.Context, req *player.PlayerTransaction) (primitive.ObjectID, error) {
 	ctx, cancel := context.WithTimeout(pctx, time.Second*15)
 	defer cancel()
 
@@ -155,11 +161,11 @@ func (r *playerRepository) InsertOnePlayerTransaction(pctx context.Context, req 
 	result, err := col.InsertOne(ctx, req)
 	if err != nil {
 		log.Printf("Error: InsertOnePlayer Transaction: %s", err.Error())
-		return errors.New("error: insert one player transaction fail")
+		return primitive.NilObjectID, errors.New("error: insert one player transaction fail")
 	}
 	log.Printf("Result: InsertPlayerTransaction :%v", result)
 
-	return nil
+	return result.InsertedID.(primitive.ObjectID), nil
 }
 
 func (r *playerRepository) GetPlayerSavingAccount(pctx context.Context, playerId string) (*player.PlayerSavingAccount, error) {
@@ -242,4 +248,46 @@ func (r *playerRepository) FindOnePlayerProfileToRefresh(pctx context.Context, p
 	}
 
 	return result, nil
+}
+
+func (r *playerRepository) DockedPlayerMoneyRes(pctx context.Context, cfg *config.Config, req *payment.PaymentTransferRes) error {
+
+	reqInBytes, err := json.Marshal(req)
+	if err != nil {
+		log.Printf("Error: DockedPlayerMoneyRes failed : %s", err.Error())
+		return errors.New("error: docked player money res failed")
+	}
+
+	if err := queue.PushMessageWithKeyToQueue(
+		[]string{cfg.Kafka.Url},
+		cfg.Kafka.ApiKey,
+		cfg.Kafka.Secret,
+		"payment",
+		"buy",
+		reqInBytes,
+	); err != nil {
+		log.Printf("Error: DockedPlayerMoney failed : %s", err.Error())
+		return errors.New("error: docked player money res failed")
+	}
+
+	return nil
+}
+
+func (r *playerRepository) DeleteOnePlayerTransaction(pctx context.Context, transantionId string) error {
+
+	ctx, cancel := context.WithTimeout(pctx, time.Second*30)
+	defer cancel()
+
+	db := r.playerDbConn(ctx)
+	col := db.Collection("player_transactions")
+
+	result, err := col.DeleteOne(ctx, bson.M{"_id": utils.ConvertToObjectId(transantionId)})
+	if err != nil {
+		log.Printf("Error: DeleteOnePlayerTransaction failed : %s", err.Error())
+		return errors.New("error: delete player transaction failed")
+	}
+
+	log.Printf("Delete Result : %d", result)
+
+	return nil
 }

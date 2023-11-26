@@ -23,7 +23,7 @@ type (
 		GetOffset(pctx context.Context) (int64, error)
 		UpsertOffset(pctx context.Context, offset int64) error
 		DockedPlayerMoney(pctx context.Context, cfg *config.Config, req *player.CreatePlayerTransactionReq) error
-		RollBackTransaction(pctx context.Context, cfg *config.Config, req *player.CreatePlayerTransactionReq) error
+		RollBackTransaction(pctx context.Context, cfg *config.Config, req *player.RollBackPlayerTransactionReq) error
 	}
 
 	paymentRepository struct {

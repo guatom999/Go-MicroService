@@ -19,7 +19,10 @@ func (s *server) playerService() {
 	playerQueueHandler := playerHandlers.NewPlayerQueueHandler(s.cfg, playerUseCase)
 
 	// _ = playerHtppHandler
-	_ = playerQueueHandler
+	// _ = playerQueueHandler
+
+	go playerQueueHandler.DockedPlayerMoney()
+	go playerQueueHandler.RollBackPlayerTransaction()
 
 	go func() {
 

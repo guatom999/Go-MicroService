@@ -11,6 +11,7 @@ import (
 	itemPb "github.com/guatom999/Go-MicroService/modules/item/itemPb"
 	"github.com/guatom999/Go-MicroService/modules/payment"
 	"github.com/guatom999/Go-MicroService/modules/payment/paymentRepositories"
+	"github.com/guatom999/Go-MicroService/modules/player"
 	"github.com/guatom999/Go-MicroService/pkg/queue"
 )
 
@@ -19,8 +20,10 @@ type (
 		FindItemsInIds(pctx context.Context, grpcUrl string, req []*payment.ItemServiceReqDatum) error
 		GetOffset(pctx context.Context) (int64, error)
 		UpsertOffset(pctx context.Context, offset int64) error
-		BuyItem(pctx context.Context, cfg *config.Config, playerId string, req *payment.ItemServiceReq) (*payment.PaymentTransferRes, error)
-		SellItem(pctx context.Context, cfg *config.Config, playerId string, req *payment.ItemServiceReq) (*payment.PaymentTransferRes, error)
+		BuyItem(pctx context.Context, cfg *config.Config, playerId string, req *payment.ItemServiceReq) ([]*payment.PaymentTransferRes, error)
+		SellItem(pctx context.Context, cfg *config.Config, playerId string, req *payment.ItemServiceReq) ([]*payment.PaymentTransferRes, error)
+		BuyOrSellConsumer(pctx context.Context, key string, cfg *config.Config, resCh chan<- *payment.PaymentTransferRes)
+		PaymentConsumer(pctx context.Context, cfg *config.Config) (sarama.PartitionConsumer, error)
 	}
 
 	paymentUseCase struct {
@@ -117,6 +120,8 @@ func (u *paymentUseCase) BuyOrSellConsumer(pctx context.Context, key string, cfg
 		return
 	}
 
+	defer consumer.Close()
+
 	log.Println("Start BuyOrSellConsumer")
 
 	select {
@@ -138,20 +143,47 @@ func (u *paymentUseCase) BuyOrSellConsumer(pctx context.Context, key string, cfg
 			resCh <- req
 			log.Printf("BuyOrSellConsumer | topic(%s) | offset(%d) | Message(%s)\n", msg.Topic, msg.Offset, string(msg.Value))
 		}
-		// log.Println("Error: BuyItemConsumer failed", err.Error())
 	}
 }
 
-func (u *paymentUseCase) BuyItem(pctx context.Context, cfg *config.Config, playerId string, req *payment.ItemServiceReq) (*payment.PaymentTransferRes, error) {
+func (u *paymentUseCase) BuyItem(pctx context.Context, cfg *config.Config, playerId string, req *payment.ItemServiceReq) ([]*payment.PaymentTransferRes, error) {
 
 	if err := u.FindItemsInIds(pctx, cfg.Grpc.PaymentUrl, req.Items); err != nil {
 		return nil, err
 	}
 
-	return nil, nil
+	stage1 := make([]*payment.PaymentTransferRes, 0)
+	for _, item := range stage1 {
+		u.paymentRepo.DockedPlayerMoney(pctx, cfg, &player.CreatePlayerTransactionReq{
+			PlayerId: playerId,
+			Amount:   item.Amount,
+		})
+
+		resCh := make(chan *payment.PaymentTransferRes)
+
+		go u.BuyOrSellConsumer(pctx, "buy", cfg, resCh)
+
+		res := <-resCh
+		if res != nil {
+			log.Println(res)
+			stage1 = append(stage1, res)
+		}
+	}
+
+	for _, s1 := range stage1 {
+		if s1.Error != "" {
+			for _, ss1 := range stage1 {
+				u.paymentRepo.RollBackTransaction(pctx, cfg, &player.RollBackPlayerTransactionReq{
+					TransactionId: ss1.TransactionId,
+				})
+			}
+		}
+	}
+
+	return stage1, nil
 }
 
-func (u *paymentUseCase) SellItem(pctx context.Context, cfg *config.Config, playerId string, req *payment.ItemServiceReq) (*payment.PaymentTransferRes, error) {
+func (u *paymentUseCase) SellItem(pctx context.Context, cfg *config.Config, playerId string, req *payment.ItemServiceReq) ([]*payment.PaymentTransferRes, error) {
 
 	if err := u.FindItemsInIds(pctx, cfg.Grpc.PaymentUrl, req.Items); err != nil {
 		return nil, err
