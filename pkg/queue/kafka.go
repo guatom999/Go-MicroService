@@ -10,7 +10,7 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-func ConnecToClient(brokerUrls []string, apiKey, secret string) (sarama.SyncProducer, error) {
+func ConnectProducer(brokerUrls []string, apiKey, secret string) (sarama.SyncProducer, error) {
 	config := sarama.NewConfig()
 	if apiKey != "" && secret != "" {
 		config.Net.SASL.Enable = true
@@ -25,7 +25,6 @@ func ConnecToClient(brokerUrls []string, apiKey, secret string) (sarama.SyncProd
 			ClientAuth:         tls.NoClientCert,
 		}
 	}
-
 	config.Producer.Return.Successes = true
 	config.Producer.RequiredAcks = sarama.WaitForAll
 	config.Producer.Retry.Max = 3
@@ -35,14 +34,12 @@ func ConnecToClient(brokerUrls []string, apiKey, secret string) (sarama.SyncProd
 		log.Printf("Error: Failed to connect to producer: %s", err.Error())
 		return nil, errors.New("error: failed to connect to producer")
 	}
-
 	return producer, nil
-
 }
 
 func PushMessageWithKeyToQueue(brokerUrl []string, apiKey, secret, topic, key string, message []byte) error {
 
-	producer, err := ConnecToClient(brokerUrl, apiKey, secret)
+	producer, err := ConnectProducer(brokerUrl, apiKey, secret)
 	if err != nil {
 		log.Printf("Error: Failed to connect to producer: %s", err.Error())
 		return errors.New("error: failed to connect to producer")
@@ -81,7 +78,6 @@ func ConnectConsumer(brokerUrls []string, apiKey, secret string) (sarama.Consume
 			ClientAuth:         tls.NoClientCert,
 		}
 	}
-
 	config.Consumer.Return.Errors = true
 	config.Consumer.Fetch.Max = 3
 
