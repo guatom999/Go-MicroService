@@ -19,6 +19,9 @@ func (s *server) paymentService() {
 	// Health Check
 	payment.GET("", s.healthCheckService)
 
-	payment.POST("/payment/buy", s.middleware.JwtAuthorization(paymentHtppHandler.BuyItem))
-	payment.POST("/paymet/sell", s.middleware.JwtAuthorization(paymentHtppHandler.BuyItem))
+	payment.POST("/payment/buy", paymentHtppHandler.BuyItem, s.middleware.JwtAuthorization)
+	payment.POST("/payment/sell", paymentHtppHandler.SellItem, s.middleware.JwtAuthorization)
+
+	// payment.POST("/payment/buy", s.middleware.JwtAuthorization(paymentHtppHandler.BuyItem))
+	// payment.POST("/paymet/sell", s.middleware.JwtAuthorization(paymentHtppHandler.BuyItem))
 }

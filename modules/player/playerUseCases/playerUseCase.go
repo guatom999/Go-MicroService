@@ -24,10 +24,10 @@ type (
 		GetPlayerSavingAccount(pctx context.Context, playerId string) (*player.PlayerSavingAccount, error)
 		FindOnePlayerCredential(pctx context.Context, password string, email string) (*playerPb.PlayerProfile, error)
 		FindOnePlayerProfileToRefresh(pctx context.Context, playerId string) (*playerPb.PlayerProfile, error)
-		GetOffset(pctx context.Context) (int64, error)
-		UpsertOffset(pctx context.Context, offset int64) error
 		DockedPlayerMoneyRes(pctx context.Context, cfg *config.Config, req *player.CreatePlayerTransactionReq)
 		RollbackPlayerTransaction(pctx context.Context, req *player.RollBackPlayerTransactionReq)
+		GetOffset(pctx context.Context) (int64, error)
+		UpsertOffset(pctx context.Context, offset int64) error
 	}
 
 	playerUseCase struct {
@@ -179,7 +179,7 @@ func (u *playerUseCase) FindOnePlayerProfileToRefresh(pctx context.Context, play
 
 func (u *playerUseCase) DockedPlayerMoneyRes(pctx context.Context, cfg *config.Config, req *player.CreatePlayerTransactionReq) {
 	//Get saving account
-	savingAccount, err := u.GetPlayerSavingAccount(pctx, req.PlayerId)
+	savingAccount, err := u.playerRepo.GetPlayerSavingAccount(pctx, req.PlayerId)
 	if err != nil {
 		u.playerRepo.DockedPlayerMoneyRes(pctx, cfg, &payment.PaymentTransferRes{
 			InventoryId:   "",
@@ -231,7 +231,6 @@ func (u *playerUseCase) DockedPlayerMoneyRes(pctx context.Context, cfg *config.C
 		Amount:        req.Amount,
 		Error:         "",
 	})
-	return
 }
 
 func (u *playerUseCase) RollbackPlayerTransaction(pctx context.Context, req *player.RollBackPlayerTransactionReq) {
