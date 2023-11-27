@@ -97,7 +97,7 @@ func LoadConfig(path string) Config {
 		Kafka: Kafka{
 			Url:    os.Getenv("KAFKA_URL"),
 			ApiKey: os.Getenv("KAFKA_API_KEY"),
-			Secret: os.Getenv("KAFKA_API_SECRET"),
+			Secret: os.Getenv("KAFKA_SECRET"),
 		},
 		Grpc: Grpc{
 			AuthUrl:      os.Getenv("GRPC_AUTH_URL"),

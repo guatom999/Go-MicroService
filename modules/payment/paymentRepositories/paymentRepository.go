@@ -53,17 +53,17 @@ func (r *paymentRepository) FindItemsInIds(pctx context.Context, grpcUrl string,
 
 	result, err := conn.Item().FindItemsInIds(ctx, req)
 	if err != nil {
-		log.Printf("Error: FindOnePlayerProfileToRefresh  failed: %s", err.Error())
+		log.Printf("Error: FindItemsInIds failed: %s", err.Error())
 		return nil, errors.New("error: item not found")
 	}
 
 	if result == nil {
-		log.Printf("Error: FindOnePlayerProfileToRefresh  failed: %s", err.Error())
+		log.Printf("Error: FindItemsInIds failed: %s", err.Error())
 		return nil, errors.New("error: item not found")
 	}
 
 	if len(result.Items) == 0 {
-		log.Printf("Error: FindOnePlayerProfileToRefresh  failed: %s", err.Error())
+		log.Printf("Error: FindItemsInIds failed: %s", err.Error())
 		return nil, errors.New("error: item not found")
 	}
 

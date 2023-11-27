@@ -97,6 +97,11 @@ func (r *inventoryRepository) FindItemsInIds(pctx context.Context, grpcUrl strin
 		return nil, errors.New("error: item not found")
 	}
 
+	if result.Items == nil {
+		log.Printf("Error: FindOnePlayerProfileToRefresh  failed: %s", err.Error())
+		return nil, errors.New("error: item not found")
+	}
+
 	if len(result.Items) == 0 {
 		log.Printf("Error: FindOnePlayerProfileToRefresh  failed: %s", err.Error())
 		return nil, errors.New("error: item not found")

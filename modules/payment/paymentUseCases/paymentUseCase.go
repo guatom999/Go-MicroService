@@ -72,7 +72,7 @@ func (u *paymentUseCase) FindItemsInIds(pctx context.Context, grpcUrl string, re
 	for i := range req {
 		if _, ok := itemMaps[req[i].ItemId]; !ok {
 			log.Printf("Error: FindItemsInIds failed:%s", err)
-			return errors.New("error: item not found")
+			return errors.New("error: item not found2")
 		}
 		req[i].Price = itemMaps[req[i].ItemId].Price
 	}
@@ -148,15 +148,15 @@ func (u *paymentUseCase) BuyOrSellConsumer(pctx context.Context, key string, cfg
 
 func (u *paymentUseCase) BuyItem(pctx context.Context, cfg *config.Config, playerId string, req *payment.ItemServiceReq) ([]*payment.PaymentTransferRes, error) {
 
-	if err := u.FindItemsInIds(pctx, cfg.Grpc.PaymentUrl, req.Items); err != nil {
+	if err := u.FindItemsInIds(pctx, cfg.Grpc.ItemUrl, req.Items); err != nil {
 		return nil, err
 	}
 
 	stage1 := make([]*payment.PaymentTransferRes, 0)
-	for _, item := range stage1 {
+	for _, item := range req.Items {
 		u.paymentRepo.DockedPlayerMoney(pctx, cfg, &player.CreatePlayerTransactionReq{
 			PlayerId: playerId,
-			Amount:   item.Amount,
+			Amount:   -item.Price,
 		})
 
 		resCh := make(chan *payment.PaymentTransferRes)
