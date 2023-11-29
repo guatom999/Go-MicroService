@@ -209,7 +209,7 @@ func (u *paymentUseCase) BuyItem(pctx context.Context, cfg *config.Config, playe
 				PlayerId:      playerId,
 				ItemId:        s1.ItemId,
 				Amount:        s1.Amount,
-				Error:         res.Error,
+				Error:         s1.Error,
 			})
 		}
 	}
