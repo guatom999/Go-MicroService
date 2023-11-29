@@ -10,6 +10,7 @@ import (
 	"github.com/guatom999/Go-MicroService/modules/item"
 	itemPb "github.com/guatom999/Go-MicroService/modules/item/itemPb"
 	"github.com/guatom999/Go-MicroService/modules/models"
+	"github.com/guatom999/Go-MicroService/modules/payment"
 	"github.com/guatom999/Go-MicroService/pkg/utils"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -20,6 +21,10 @@ type (
 		FindPlayerItems(pctx context.Context, cfg *config.Config, playerId string, req *inventory.InventorySearchReq) (*models.PaginateRes, error)
 		GetOffset(pctx context.Context) (int64, error)
 		UpsertOffset(pctx context.Context, offset int64) error
+		AddPlayerItemsRes(pctx context.Context, cfg *config.Config, req *inventory.UpdateInventoryReq)
+		RemovePlayerItemsRes(pctx context.Context, cfg *config.Config, req *inventory.UpdateInventoryReq)
+		RollBackAddPlayerItem(pctx context.Context, cfg *config.Config, req *inventory.RollbackPlayerInventoryReq)
+		RollBackRemovePlayerItem(pctx context.Context, cfg *config.Config, req *inventory.RollbackPlayerInventoryReq)
 	}
 
 	inventoryUsecase struct {
@@ -132,4 +137,47 @@ func (u *inventoryUsecase) FindPlayerItems(pctx context.Context, cfg *config.Con
 			Href:  fmt.Sprintf("%s/%s?limit=%d&start=%s", cfg.Paginate.InventoryNextPageBasedUrl, playerId, req.Limit, results[len(results)-1].InventoryId),
 		},
 	}, nil
+}
+
+func (u *inventoryUsecase) AddPlayerItemsRes(pctx context.Context, cfg *config.Config, req *inventory.UpdateInventoryReq) {
+	inventoryId, err := u.inventoryRepo.InsertOnePlayerItem(pctx, &inventory.Inventory{
+		PlayerId: req.PlayerId,
+		ItemId:   req.ItemId,
+	})
+	if err != nil {
+		u.inventoryRepo.AddPlayerItemRes(pctx, cfg, &payment.PaymentTransferRes{
+			InventoryId:   "",
+			TransactionId: "",
+			PlayerId:      req.PlayerId,
+			ItemId:        req.ItemId,
+			Amount:        0,
+			Error:         err.Error(),
+		})
+		return
+	}
+
+	u.inventoryRepo.AddPlayerItemRes(pctx, cfg, &payment.PaymentTransferRes{
+		InventoryId:   inventoryId.Hex(),
+		TransactionId: "",
+		PlayerId:      req.PlayerId,
+		ItemId:        req.ItemId,
+		Amount:        0,
+		Error:         "",
+	})
+
+}
+
+func (u *inventoryUsecase) RemovePlayerItemsRes(pctx context.Context, cfg *config.Config, req *inventory.UpdateInventoryReq) {
+
+}
+
+func (u *inventoryUsecase) RollBackAddPlayerItem(pctx context.Context, cfg *config.Config, req *inventory.RollbackPlayerInventoryReq) {
+	u.inventoryRepo.DeleteOnePlayerItem(pctx, req.InventoryId)
+}
+
+func (u *inventoryUsecase) RollBackRemovePlayerItem(pctx context.Context, cfg *config.Config, req *inventory.RollbackPlayerInventoryReq) {
+	u.inventoryRepo.InsertOnePlayerItem(pctx, &inventory.Inventory{
+		PlayerId: req.PlayerId,
+		ItemId:   req.ItemId,
+	})
 }

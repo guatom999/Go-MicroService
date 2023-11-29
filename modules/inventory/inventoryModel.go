@@ -6,11 +6,10 @@ import (
 )
 
 type (
-	UpdateInventory struct {
+	UpdateInventoryReq struct {
 		PlayerId string `json:"player" validate:"required,max=64"`
 		ItemId   string `json:"item_id" validate:"required,max=64"`
 	}
-
 	ItemInInventory struct {
 		InventoryId string `json:"inventory_id"`
 		PlayerId    string `json:"player_id"`
@@ -19,5 +18,11 @@ type (
 
 	InventorySearchReq struct {
 		models.PaginateReq
+	}
+
+	RollbackPlayerInventoryReq struct {
+		InventoryId string `json:"inventory_id"`
+		PlayerId    string `json:"player_id"`
+		ItemId      string `json:"item_id"`
 	}
 )

@@ -2,15 +2,20 @@ package inventoryRepositories
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"log"
 	"time"
 
+	"github.com/guatom999/Go-MicroService/config"
 	"github.com/guatom999/Go-MicroService/modules/inventory"
 	itemPb "github.com/guatom999/Go-MicroService/modules/item/itemPb"
 	"github.com/guatom999/Go-MicroService/modules/models"
+	"github.com/guatom999/Go-MicroService/modules/payment"
 	"github.com/guatom999/Go-MicroService/pkg/grpccon"
 	"github.com/guatom999/Go-MicroService/pkg/jwtauth"
+	"github.com/guatom999/Go-MicroService/pkg/queue"
+	"github.com/guatom999/Go-MicroService/pkg/utils"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -24,6 +29,10 @@ type (
 		CountPlayerItems(pctx context.Context, playerId string) (int64, error)
 		GetOffset(pctx context.Context) (int64, error)
 		UpsertOffset(pctx context.Context, offset int64) error
+		AddPlayerItemRes(pctx context.Context, cfg *config.Config, req *payment.PaymentTransferRes) error
+		RemovePlayerItems(pctx context.Context, cfg *config.Config, req *payment.PaymentTransferRes) error
+		InsertOnePlayerItem(pctx context.Context, req *inventory.Inventory) (primitive.ObjectID, error)
+		DeleteOnePlayerItem(pctx context.Context, inventoryId string) error
 	}
 
 	inventoryRepository struct {
@@ -154,4 +163,86 @@ func (r *inventoryRepository) CountPlayerItems(pctx context.Context, playerId st
 	}
 
 	return count, nil
+}
+
+func (r *inventoryRepository) InsertOnePlayerItem(pctx context.Context, req *inventory.Inventory) (primitive.ObjectID, error) {
+
+	ctx, cancel := context.WithTimeout(pctx, time.Second*10)
+	defer cancel()
+
+	db := r.inventoryDbConn(ctx)
+	col := db.Collection("players_inventory")
+
+	result, err := col.InsertOne(pctx, req)
+	if err != nil {
+		log.Printf("Error: InsertOnePlayerItem failed:%s", err.Error())
+		return primitive.NilObjectID, errors.New("error: insert one player item failed")
+	}
+
+	return result.InsertedID.(primitive.ObjectID), nil
+}
+
+func (r *inventoryRepository) DeleteOnePlayerItem(pctx context.Context, inventoryId string) error {
+
+	ctx, cancel := context.WithTimeout(pctx, time.Second*10)
+	defer cancel()
+
+	db := r.inventoryDbConn(ctx)
+	col := db.Collection("players_inventory")
+
+	result, err := col.DeleteOne(pctx, bson.M{"_id": utils.ConvertToObjectId(inventoryId)})
+	if err != nil {
+		log.Printf("Error: DeleteOnePlayerItem failed:%s", err.Error())
+		return errors.New("error: delete one player item failed")
+	}
+
+	log.Panicf("DeleteOnePlayerItem result :%v", result)
+
+	return nil
+}
+
+func (r *inventoryRepository) AddPlayerItemRes(pctx context.Context, cfg *config.Config, req *payment.PaymentTransferRes) error {
+
+	reqInBytes, err := json.Marshal(req)
+	if err != nil {
+		log.Printf("Error: AddPlayerItemRes failed : %s", err.Error())
+		return errors.New("error: add player item res failed")
+	}
+
+	if err := queue.PushMessageWithKeyToQueue(
+		[]string{cfg.Kafka.Url},
+		cfg.Kafka.ApiKey,
+		cfg.Kafka.Secret,
+		"payment",
+		"buy",
+		reqInBytes,
+	); err != nil {
+		log.Printf("Error: AddPlayerItemRes failed : %s", err.Error())
+		return errors.New("error: add player item res failed")
+	}
+
+	return nil
+}
+
+func (r *inventoryRepository) RemovePlayerItems(pctx context.Context, cfg *config.Config, req *payment.PaymentTransferRes) error {
+
+	reqInBytes, err := json.Marshal(req)
+	if err != nil {
+		log.Printf("Error: RemovePlayerItems failed : %s", err.Error())
+		return errors.New("error: remove player item res failed")
+	}
+
+	if err := queue.PushMessageWithKeyToQueue(
+		[]string{cfg.Kafka.Url},
+		cfg.Kafka.ApiKey,
+		cfg.Kafka.Secret,
+		"payment",
+		"sell",
+		reqInBytes,
+	); err != nil {
+		log.Printf("Error: RemovePlayerItems failed : %s", err.Error())
+		return errors.New("error: remove player item res failed")
+	}
+
+	return nil
 }

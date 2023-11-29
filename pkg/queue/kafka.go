@@ -65,7 +65,6 @@ func PushMessageWithKeyToQueue(brokerUrl []string, apiKey, secret, topic, key st
 
 func ConnectConsumer(brokerUrls []string, apiKey, secret string) (sarama.Consumer, error) {
 
-	log.Println("usernameis ====>:%s and password is =======>:%s", apiKey, secret)
 	config := sarama.NewConfig()
 	config.Version = sarama.V1_1_0_0
 	if apiKey != "" && secret != "" {

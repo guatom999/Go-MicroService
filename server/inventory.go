@@ -17,6 +17,11 @@ func (s *server) inventoryService() {
 	inventoryGrpcHandler := inventoryHandlers.NewInventoryGrpcHandler(inventoryUseCase)
 	inventoryQueueHandler := inventoryHandlers.NewInventoryQueueHandler(s.cfg, inventoryUseCase)
 
+	go inventoryQueueHandler.AddPlayerItem()
+	go inventoryQueueHandler.RollbackAddPlayerItem()
+	// go inventoryQueueHandler.RollbackPlayerItem()
+	// go inventoryQueueHandler.RollbackRemovePlayerItem()
+
 	go func() {
 		grcpServer, list := grpccon.NewGrpcServer(&s.cfg.Jwt, s.cfg.Grpc.InventoryUrl)
 
@@ -28,7 +33,7 @@ func (s *server) inventoryService() {
 
 	// _ = inventoryHtppHandler
 	_ = inventoryGrpcHandler
-	_ = inventoryQueueHandler
+	// _ = inventoryQueueHandler
 
 	inventory := s.app.Group("/inventory_v1")
 

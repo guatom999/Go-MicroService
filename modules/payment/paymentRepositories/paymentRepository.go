@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/guatom999/Go-MicroService/config"
+	"github.com/guatom999/Go-MicroService/modules/inventory"
 	itemPb "github.com/guatom999/Go-MicroService/modules/item/itemPb"
 	"github.com/guatom999/Go-MicroService/modules/models"
 	"github.com/guatom999/Go-MicroService/modules/player"
@@ -24,6 +25,8 @@ type (
 		UpsertOffset(pctx context.Context, offset int64) error
 		DockedPlayerMoney(pctx context.Context, cfg *config.Config, req *player.CreatePlayerTransactionReq) error
 		RollBackTransaction(pctx context.Context, cfg *config.Config, req *player.RollBackPlayerTransactionReq) error
+		AddPlayerItem(pctx context.Context, cfg *config.Config, req *inventory.UpdateInventoryReq) error
+		RollBackAddPlayerItem(pctx context.Context, cfg *config.Config, req *inventory.RollbackPlayerInventoryReq) error
 	}
 
 	paymentRepository struct {
