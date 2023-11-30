@@ -236,9 +236,48 @@ func (u *paymentUseCase) BuyItem(pctx context.Context, cfg *config.Config, playe
 
 func (u *paymentUseCase) SellItem(pctx context.Context, cfg *config.Config, playerId string, req *payment.ItemServiceReq) ([]*payment.PaymentTransferRes, error) {
 
-	if err := u.FindItemsInIds(pctx, cfg.Grpc.PaymentUrl, req.Items); err != nil {
+	if err := u.FindItemsInIds(pctx, cfg.Grpc.ItemUrl, req.Items); err != nil {
 		return nil, err
 	}
 
-	return nil, nil
+	stage1 := make([]*payment.PaymentTransferRes, 0)
+	for _, item := range req.Items {
+		u.paymentRepo.RemovePlayerItem(pctx, cfg, &inventory.UpdateInventoryReq{
+			PlayerId: playerId,
+			ItemId:   item.ItemId,
+		})
+
+		resCh := make(chan *payment.PaymentTransferRes)
+
+		go u.BuyOrSellConsumer(pctx, "sell", cfg, resCh)
+
+		res := <-resCh
+		if res != nil {
+			log.Println(res)
+			stage1 = append(stage1, &payment.PaymentTransferRes{
+				InventoryId:   "",
+				TransactionId: "",
+				PlayerId:      playerId,
+				ItemId:        item.ItemId,
+				Amount:        item.Price,
+				Error:         res.Error,
+			})
+		}
+	}
+
+	for _, s1 := range stage1 {
+		if s1.Error != "" {
+			for _, ss1 := range stage1 {
+				if ss1.Error != "error: item not found" {
+					u.paymentRepo.RollbackRemovePlayerItem(pctx, cfg, &inventory.RollbackPlayerInventoryReq{
+						PlayerId: playerId,
+						ItemId:   ss1.ItemId,
+					})
+				}
+			}
+			return nil, errors.New("error: sell item failed")
+		}
+	}
+
+	return stage1, nil
 }

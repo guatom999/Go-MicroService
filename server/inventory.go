@@ -19,8 +19,8 @@ func (s *server) inventoryService() {
 
 	go inventoryQueueHandler.AddPlayerItem()
 	go inventoryQueueHandler.RollbackAddPlayerItem()
-	// go inventoryQueueHandler.RollbackPlayerItem()
-	// go inventoryQueueHandler.RollbackRemovePlayerItem()
+	go inventoryQueueHandler.RemovePlayerItem()
+	go inventoryQueueHandler.RollbackRemovePlayerItem()
 
 	go func() {
 		grcpServer, list := grpccon.NewGrpcServer(&s.cfg.Jwt, s.cfg.Grpc.InventoryUrl)

@@ -39,7 +39,7 @@ func (r *paymentRepository) RollBackTransaction(pctx context.Context, cfg *confi
 	reqInBytes, err := json.Marshal(req)
 	if err != nil {
 		log.Printf("Error: RollBackTransaction failed : %s", err.Error())
-		return errors.New("error: docked player money failed")
+		return errors.New("error: rollback player transaction failed")
 	}
 
 	if err := queue.PushMessageWithKeyToQueue(
@@ -51,7 +51,7 @@ func (r *paymentRepository) RollBackTransaction(pctx context.Context, cfg *confi
 		reqInBytes,
 	); err != nil {
 		log.Printf("Error: RollBackTransaction failed : %s", err.Error())
-		return errors.New("error: docked player money failed")
+		return errors.New("error: rollback player transaction failed")
 	}
 
 	return nil
@@ -92,6 +92,50 @@ func (r *paymentRepository) RollBackAddPlayerItem(pctx context.Context, cfg *con
 		cfg.Kafka.Secret,
 		"inventory",
 		"radd",
+		reqInBytes,
+	); err != nil {
+		log.Printf("Error: RollBackAddPlayerItem failed : %s", err.Error())
+		return errors.New("error: rollback add player item failed")
+	}
+
+	return nil
+}
+
+func (r *paymentRepository) RemovePlayerItem(pctx context.Context, cfg *config.Config, req *inventory.UpdateInventoryReq) error {
+	reqInBytes, err := json.Marshal(req)
+	if err != nil {
+		log.Printf("Error: RollBackAddPlayerItem failed : %s", err.Error())
+		return errors.New("error: rollback add player item failed")
+	}
+
+	if err := queue.PushMessageWithKeyToQueue(
+		[]string{cfg.Kafka.Url},
+		cfg.Kafka.ApiKey,
+		cfg.Kafka.Secret,
+		"inventory",
+		"sell",
+		reqInBytes,
+	); err != nil {
+		log.Printf("Error: RollBackAddPlayerItem failed : %s", err.Error())
+		return errors.New("error: rollback add player item failed")
+	}
+
+	return nil
+}
+
+func (r *paymentRepository) RollbackRemovePlayerItem(pctx context.Context, cfg *config.Config, req *inventory.RollbackPlayerInventoryReq) error {
+	reqInBytes, err := json.Marshal(req)
+	if err != nil {
+		log.Printf("Error: RollBackAddPlayerItem failed : %s", err.Error())
+		return errors.New("error: rollback add player item failed")
+	}
+
+	if err := queue.PushMessageWithKeyToQueue(
+		[]string{cfg.Kafka.Url},
+		cfg.Kafka.ApiKey,
+		cfg.Kafka.Secret,
+		"inventory",
+		"rremove",
 		reqInBytes,
 	); err != nil {
 		log.Printf("Error: RollBackAddPlayerItem failed : %s", err.Error())
