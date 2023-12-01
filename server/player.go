@@ -23,6 +23,7 @@ func (s *server) playerService() {
 
 	go playerQueueHandler.DockedPlayerMoney()
 	go playerQueueHandler.RollBackPlayerTransaction()
+	go playerQueueHandler.AddPlayerMoney()
 
 	go func() {
 

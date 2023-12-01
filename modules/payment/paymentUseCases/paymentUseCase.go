@@ -279,5 +279,51 @@ func (u *paymentUseCase) SellItem(pctx context.Context, cfg *config.Config, play
 		}
 	}
 
-	return stage1, nil
+	stage2 := make([]*payment.PaymentTransferRes, 0)
+	for _, s1 := range stage1 {
+		u.paymentRepo.AddPlayerMoney(pctx, cfg, &player.CreatePlayerTransactionReq{
+			PlayerId: s1.PlayerId,
+			Amount:   s1.Amount * 0.5,
+		})
+
+		resCh := make(chan *payment.PaymentTransferRes)
+
+		go u.BuyOrSellConsumer(pctx, "sell", cfg, resCh)
+
+		res := <-resCh
+		if res != nil {
+			log.Printf("res stage2 is =======>%v ", res)
+			stage2 = append(stage2, &payment.PaymentTransferRes{
+				InventoryId:   res.InventoryId,
+				TransactionId: s1.TransactionId,
+				PlayerId:      playerId,
+				ItemId:        s1.ItemId,
+				Amount:        s1.Amount,
+				Error:         s1.Error,
+			})
+		}
+	}
+
+	for _, s2 := range stage2 {
+		if s2.Error != "" {
+
+			for _, ss1 := range stage1 {
+				u.paymentRepo.RollBackTransaction(pctx, cfg, &player.RollBackPlayerTransactionReq{
+					TransactionId: ss1.TransactionId,
+				})
+			}
+
+			for _, ss2 := range stage2 {
+				if ss2.Error != "" {
+					u.paymentRepo.RollbackRemovePlayerItem(pctx, cfg, &inventory.RollbackPlayerInventoryReq{
+						InventoryId: ss2.InventoryId,
+					})
+				}
+			}
+
+			return nil, errors.New("error: sell item failed")
+		}
+
+	}
+	return stage2, nil
 }

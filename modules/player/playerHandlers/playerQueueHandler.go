@@ -18,6 +18,7 @@ type (
 	IPlayerQueueHandlerService interface {
 		DockedPlayerMoney()
 		RollBackPlayerTransaction()
+		AddPlayerMoney()
 	}
 
 	playerQueueHandler struct {
@@ -90,6 +91,48 @@ func (h *playerQueueHandler) DockedPlayerMoney() {
 			}
 		case <-sigchan:
 			log.Println("Stop DockedPlayerMoney...")
+			return
+		}
+
+	}
+
+}
+
+func (h *playerQueueHandler) AddPlayerMoney() {
+
+	ctx := context.Background()
+
+	consumer, err := h.PlayerConsumer(ctx)
+	if err != nil {
+		return
+	}
+	defer consumer.Close()
+
+	log.Println("Start AddPlayerMoney ...")
+
+	sigchan := make(chan os.Signal, 1)
+	signal.Notify(sigchan, syscall.SIGINT, syscall.SIGTERM)
+
+	for {
+		select {
+		case err := <-consumer.Errors():
+			log.Println("Error: AddPlayerMoney failed", err.Error())
+			continue
+		case msg := <-consumer.Messages():
+			if string(msg.Key) == "sell" {
+				h.playerUseCase.UpsertOffset(ctx, msg.Offset+1)
+
+				req := new(player.CreatePlayerTransactionReq)
+
+				if err := queue.DecodeMessage(req, msg.Value); err != nil {
+					continue
+				}
+
+				h.playerUseCase.AddPlayerMoneyRes(ctx, h.cfg, req)
+				log.Printf("AddPlayerMoney | topic(%s) | offset(%d) | Message(%s)\n", msg.Topic, msg.Offset, string(msg.Value))
+			}
+		case <-sigchan:
+			log.Println("Stop AddPlayerMoney...")
 			return
 		}
 

@@ -6,6 +6,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/guatom999/Go-MicroService/config"
 	"github.com/guatom999/Go-MicroService/modules/auth"
 	playerPb "github.com/guatom999/Go-MicroService/modules/player/playerPb"
 	"github.com/guatom999/Go-MicroService/pkg/grpccon"
@@ -27,6 +28,8 @@ type (
 		DeleteOnePlayerCredential(pctx context.Context, credentialId string) (int64, error)
 		FindOneAccessToken(pctx context.Context, accessToken string) (*auth.Credential, error)
 		RoleCount(pctx context.Context) (int64, error)
+		AccessToken(cfg *config.Config, claims *jwtauth.Claims) string
+		RefreshToken(cfg *config.Config, claims *jwtauth.Claims) string
 	}
 
 	authRepository struct {
@@ -71,6 +74,9 @@ func (r *authRepository) InsertOnePlayerCredential(pctx context.Context, req *au
 
 	db := r.authDbConn(ctx)
 	col := db.Collection("auth")
+
+	req.CreatedAt = utils.LocalTime()
+	req.UpdatedAt = utils.LocalTime()
 
 	result, err := col.InsertOne(ctx, req)
 
@@ -204,4 +210,18 @@ func (r *authRepository) RoleCount(pctx context.Context) (int64, error) {
 	}
 
 	return count, nil
+}
+
+func (r *authRepository) AccessToken(cfg *config.Config, claims *jwtauth.Claims) string {
+	return jwtauth.NewAccessToken(cfg.Jwt.AccessSecretKey, cfg.Jwt.AccessDuration, &jwtauth.Claims{
+		PlayerId: claims.PlayerId,
+		RoleCode: int(claims.RoleCode),
+	}).SignToken()
+}
+
+func (r *authRepository) RefreshToken(cfg *config.Config, claims *jwtauth.Claims) string {
+	return jwtauth.NewRefreshToken(cfg.Jwt.RefreshSecretKey, cfg.Jwt.RefreshDuration, &jwtauth.Claims{
+		PlayerId: claims.PlayerId,
+		RoleCode: int(claims.RoleCode),
+	}).SignToken()
 }
