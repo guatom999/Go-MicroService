@@ -33,15 +33,11 @@ func TestLogin(t *testing.T) {
 	repoMock := new(authRepositories.AuthRepoMock)
 	usecase := authUseCases.NewAuthUseCase(repoMock)
 
-	_ = usecase
-
 	cfg := NewTestConfig()
 	ctx := context.Background()
 
 	credentialIdSuccess := primitive.NewObjectID()
 	credentialIdFailed := primitive.NewObjectID()
-
-	_ = credentialIdFailed
 
 	tests := []testLogin{
 		{
@@ -152,6 +148,7 @@ func TestLogin(t *testing.T) {
 		UpdatedAt:    time.Time{},
 	}).Return(credentialIdFailed, nil)
 
+	// FindOnePlayerCredential
 	repoMock.On("FindOnePlayerCredential", ctx, credentialIdSuccess.Hex()).Return(&auth.Credential{
 		Id:           credentialIdSuccess,
 		PlayerId:     "player:001",
@@ -162,14 +159,14 @@ func TestLogin(t *testing.T) {
 		UpdatedAt:    time.Time{},
 	}, nil)
 
-	repoMock.On("FindOnePlayerCredential", ctx, credentialIdSuccess.Hex()).Return(&auth.Credential{}, errors.New("error: player credential not found"))
+	repoMock.On("FindOnePlayerCredential", ctx, credentialIdFailed.Hex()).Return(&auth.Credential{}, errors.New("error: player credential not found"))
 
 	for i, test := range tests {
-		fmt.Printf("case :%d\n", i)
+		fmt.Printf("case :%d\n", i+1)
 
 		result, err := usecase.Login(test.ctx, test.cfg, test.req)
 
-		if !test.isErr {
+		if test.isErr {
 			assert.NotEmpty(t, err)
 		} else {
 			result.CreatedAt = time.Time{}
